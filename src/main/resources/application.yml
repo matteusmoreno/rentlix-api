@@ -1,4 +1,4 @@
-# Application Configuration
+# Quarkus Configuration
 quarkus:
   http:
     port: 8881
@@ -31,3 +31,14 @@ quarkus:
     persist-authorization: true
     always-include: true
     path: /swagger-ui
+
+  rest-client:
+    via-cep:
+      url: ${APP_VIACEP_URL:https://viacep.com.br}
+      connect-timeout: ${APP_VIACEP_TIMEOUT_MS:10000}
+      read-timeout: ${APP_VIACEP_TIMEOUT_MS:10000}
+
+# Application Configuration
+app:
+  server:
+    timezone: ${SERVER_TIMEZONE:America/Sao_Paulo}
