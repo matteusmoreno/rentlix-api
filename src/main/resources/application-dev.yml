@@ -17,6 +17,9 @@ quarkus:
     jdbc:
       url: jdbc:postgresql://localhost:5432/rentlix
 
+  hibernate-orm:
+    physical-naming-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
   # Flyway Configuration
   flyway:
     migrate-at-start: true
@@ -43,3 +46,5 @@ quarkus:
 app:
   server:
     timezone: ${SERVER_TIMEZONE:America/Sao_Paulo}
+  email:
+    verification-token-expires-minutes: ${EMAIL_VERIFICATION_TOKEN_EXPIRES_MINUTES:20}

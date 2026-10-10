@@ -6,6 +6,7 @@ import com.mtsolutions.domain.model.UserDocument;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,6 +23,8 @@ public class User {
     @Column(name = "user_id")
     private UUID userId;
     private String name;
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
     private String phone;
     private String cpf;
     private String rg;

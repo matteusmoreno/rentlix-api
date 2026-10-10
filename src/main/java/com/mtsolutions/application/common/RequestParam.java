@@ -9,6 +9,7 @@ public class RequestParam {
     public static final String NUMBER = "number";
     public static final String COMPLEMENT = "complement";
     public static final String EMAIL = "email";
+    public static final String TOKEN = "token";
 
     private RequestParam(){}
 

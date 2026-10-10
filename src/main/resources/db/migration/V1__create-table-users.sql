@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id                              UUID NOT NULL,
     name                                 VARCHAR(150) NOT NULL,
+    birth_date                           DATE NOT NULL,
     phone                                VARCHAR(30) NOT NULL UNIQUE,
     cpf                                  VARCHAR(40) NOT NULL UNIQUE,
-    rg                                   VARCHAR(40),
+    rg                                   VARCHAR(40) UNIQUE,
     occupation                           VARCHAR(150),
     marital_status                       VARCHAR(100),
 
