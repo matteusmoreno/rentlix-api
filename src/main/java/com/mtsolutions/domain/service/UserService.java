@@ -16,6 +16,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -25,16 +26,22 @@ public class UserService {
     private final UserRepository userRepository;
     private final AddressService addressService;
     private final PasswordService passwordService;
+    private final EmailService emailService;
+    private final UtilsService utilsService;
     private final DateComponent dateComponent;
     private final long emailVerificationTokenExpiresMinutes;
 
     public UserService(UserRepository userRepository,
                        AddressService addressService, PasswordService passwordService,
+                       EmailService emailService,
+                       UtilsService utilsService,
                        DateComponent dateComponent,
                        @ConfigProperty(name = "app.email.verification-token-expires-minutes") long emailVerificationTokenExpiresMinutes) {
         this.userRepository = userRepository;
         this.addressService = addressService;
         this.passwordService = passwordService;
+        this.emailService = emailService;
+        this.utilsService = utilsService;
         this.dateComponent = dateComponent;
         this.emailVerificationTokenExpiresMinutes = emailVerificationTokenExpiresMinutes;
     }
@@ -76,6 +83,7 @@ public class UserService {
         this.userRepository.persist(user);
         log.info("User created with ID: {}", user.getUserId());
 
+        this.emailService.sendWelcomeEmail(user.getName(), user.getEmail());
         this.sendEmailVerification(user);
         return user;
     }
@@ -85,6 +93,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(Features.GET_USER));
     }
 
+    // Email verification methods
     @Transactional
     public void sendEmailVerification(UUID userId) throws RentlixApiException {
         User user = this.userRepository.findByIdOptional(userId)
@@ -96,33 +105,30 @@ public class UserService {
     public void sendEmailVerification(User user) {
         log.info("Preparing email verification for user: {}", user.getEmail());
 
-        // Cadastro público: a conta acaba de ser criada e ainda não há usuário autenticado.
-        // O token vale só para este usuário, e só enquanto o e-mail não foi verificado.
         if (Boolean.TRUE.equals(user.getEmailVerified())) {
             log.info("Email already verified for user: {}", user.getEmail());
             return;
         }
 
-        String token = UUID.randomUUID().toString();
+        String token = this.utilsService.generateVerificationCode();
         user.setEmailVerificationToken(token);
         user.setEmailVerificationTokenExpiresAt(this.dateComponent.now().plusMinutes(this.emailVerificationTokenExpiresMinutes));
         user.setUpdatedAt(this.dateComponent.now());
         this.userRepository.persist(user);
 
-        // EmailService será implementado depois. O envio do link entra aqui, com o token já gravado.
-        // Uma falha no envio não pode desfazer o cadastro.
-        log.info("Email verification token generated for user: {}", user.getEmail());
+        this.emailService.sendVerificationEmail(user.getName(), user.getEmail(), token, this.emailVerificationTokenExpiresMinutes);
+        log.info("Email verification code generated for user: {}", user.getEmail());
     }
 
     @Transactional
     public void verifyEmail(String token) throws RentlixApiException {
         log.info("Verifying email");
 
-        // Confirmação pública. Quem apresenta o token válido é o dono do e-mail.
         if (token == null || token.isBlank()) {
             throw new InvalidEmailVerificationTokenException(Features.VERIFY_EMAIL);
         }
 
+        token = token.trim().toUpperCase(Locale.ROOT);
         User user = this.userRepository.findByEmailVerificationToken(token)
                 .orElseThrow(() -> new InvalidEmailVerificationTokenException(Features.VERIFY_EMAIL));
 
@@ -140,5 +146,4 @@ public class UserService {
 
         log.info("Email verified for user: {}", user.getEmail());
     }
-    
 }

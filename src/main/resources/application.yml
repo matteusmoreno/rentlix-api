@@ -41,6 +41,15 @@ quarkus:
       connect-timeout: ${APP_VIACEP_TIMEOUT_MS:10000}
       read-timeout: ${APP_VIACEP_TIMEOUT_MS:10000}
 
+  mailer:
+    from: ${MAIL_FROM:noreply@rentlix.com}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    start-tls: REQUIRED
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    mock: ${MAIL_MOCK:false}
+
 mp:
   jwt:
     verify:
