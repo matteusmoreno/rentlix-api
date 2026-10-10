@@ -1,0 +1,33 @@
+# Application Configuration
+quarkus:
+  http:
+    port: 8881
+    cors:
+      enabled: true
+      origins: "*"
+  application:
+    name: rentlix-api
+
+  # Database Configuration
+  datasource:
+    db-kind: postgresql
+    username: ${APP_DATABASE_USERNAME:postgres}
+    password: ${APP_DATABASE_PASSWORD:}
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/rentlix
+
+  # Flyway Configuration
+  flyway:
+    migrate-at-start: true
+    locations: classpath:db/migration
+
+  # Swagger Configuration
+  swagger-ui:
+    title: Rentlix API Documentation
+    info-title: Rentlix API Documentation
+    info-version: 1.0.0
+    theme: muted
+    try-it-out-enabled: true
+    persist-authorization: true
+    always-include: true
+    path: /swagger-ui
