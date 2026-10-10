@@ -10,6 +10,10 @@ import java.util.UUID;
 @ApplicationScoped
 public class UserRepository implements PanacheRepositoryBase<User, UUID> {
 
+    public Optional<User> findByEmailOptional(String email) {
+        return find("email", email).firstResultOptional();
+    }
+
     public Optional<User> findByEmailVerificationToken(String token) {
         return find("emailVerificationToken", token).firstResultOptional();
     }

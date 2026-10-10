@@ -5,5 +5,6 @@ public enum Features {
     CREATE_USER,
     GET_USER,
     SEND_EMAIL_VERIFICATION,
-    VERIFY_EMAIL
+    VERIFY_EMAIL,
+    LOGIN
 }
