@@ -15,6 +15,7 @@ import com.mtsolutions.application.exception.UserAlreadyExistsException;
 import com.mtsolutions.application.exception.UserNotFoundException;
 import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateUserRequestDto;
 import com.mtsolutions.domain.entity.User;
 import com.mtsolutions.domain.model.Address;
 import com.mtsolutions.domain.model.UserDocument;
@@ -132,6 +133,36 @@ public class UserService {
         List<User> users = this.userRepository.findPage(currentPage, pageSize);
         long totalElements = this.userRepository.count();
         return new UserPage(users, currentPage, pageSize, totalElements);
+    }
+
+    @Transactional
+    public User updateUser(UpdateUserRequestDto request, UUID userId) throws RentlixApiException {
+        log.info("Updating user: {}", userId);
+        this.requireSameUser(userId, Features.UPDATE_USER);
+
+        User user = this.userRepository.findByIdOptional(userId)
+                .orElseThrow(() -> new UserNotFoundException(Features.UPDATE_USER));
+
+        if (this.userRepository.existsOtherByCpfOrPhoneOrRg(userId, request.cpf(), request.phone(), request.rg())) {
+            throw new UserAlreadyExistsException(Features.UPDATE_USER);
+        }
+
+        if (request.name() != null) user.setName(request.name());
+        if (request.birthDate() != null) user.setBirthDate(request.birthDate());
+        if (request.phone() != null) user.setPhone(request.phone());
+        if (request.cpf() != null) user.setCpf(request.cpf());
+        if (request.rg() != null) user.setRg(request.rg());
+        if (request.occupation() != null) user.setOccupation(request.occupation());
+        if (request.maritalStatus() != null) user.setMaritalStatus(request.maritalStatus());
+        if (request.address() != null) {
+            Address address = this.addressService.getAddress(request.address());
+            user.setAddress(address);
+        }
+
+        user.setUpdatedAt(this.dateComponent.now());
+        this.userRepository.persist(user);
+        log.info("User updated: {}", user.getUserId());
+        return user;
     }
 
     @Transactional

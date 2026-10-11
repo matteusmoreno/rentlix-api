@@ -5,6 +5,7 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.UserResourceExamples;
 import com.mtsolutions.domain.controller.UserController;
 import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateUserRequestDto;
 import com.mtsolutions.domain.dto.response.UserPageResponseDto;
 import com.mtsolutions.domain.dto.response.UserResponseDto;
 import com.mtsolutions.domain.entity.User;
@@ -16,14 +17,7 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -108,6 +102,35 @@ public class UserResource {
     )
     public Response getUserById(@PathParam(RequestParam.USER_ID) UUID userId) throws RentlixApiException {
         User user = this.userController.getUserById(userId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new UserResponseDto(user))
+                .build();
+    }
+
+    @PUT
+    @Path("/{userId}/update")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+        summary = "Update User",
+        description = "Updates the authenticated user's information"
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = UpdateUserRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Update User",
+                            value = UserResourceExamples.UPDATE_USER_EXAMPLE
+                    )
+            )
+    )
+    public Response update(
+            @Valid UpdateUserRequestDto request,
+            @PathParam(RequestParam.USER_ID) @NotNull(message = "userId is required") UUID userId) throws RentlixApiException {
+        User user = this.userController.updateUser(request, userId);
 
         return Response.status(Response.Status.OK)
                 .entity(new UserResponseDto(user))

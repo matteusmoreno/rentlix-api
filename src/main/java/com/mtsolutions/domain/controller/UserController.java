@@ -2,6 +2,7 @@ package com.mtsolutions.domain.controller;
 
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateUserRequestDto;
 import com.mtsolutions.domain.entity.User;
 import com.mtsolutions.domain.model.UserPage;
 import com.mtsolutions.domain.service.UserService;
@@ -30,6 +31,10 @@ public class UserController {
 
     public UserPage listUsers(int page, int size) {
         return this.userService.listUsers(page, size);
+    }
+
+    public User updateUser(UpdateUserRequestDto request, UUID userId) throws RentlixApiException {
+        return this.userService.updateUser(request, userId);
     }
 
     public void sendEmailVerification(UUID userId) throws RentlixApiException {
