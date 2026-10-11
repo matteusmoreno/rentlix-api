@@ -2,8 +2,10 @@ package com.mtsolutions.domain.repository;
 
 import com.mtsolutions.domain.entity.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +18,10 @@ public class UserRepository implements PanacheRepositoryBase<User, UUID> {
 
     public Optional<User> findByEmailVerificationToken(String token) {
         return find("emailVerificationToken", token).firstResultOptional();
+    }
+
+    public List<User> findPage(int page, int size) {
+        return findAll(Sort.descending("createdAt")).page(page, size).list();
     }
 
     public boolean existsByEmailOrCpfOrPhoneOrRg(String email, String cpf, String phone, String rg) {

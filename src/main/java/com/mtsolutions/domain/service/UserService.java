@@ -18,6 +18,7 @@ import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
 import com.mtsolutions.domain.entity.User;
 import com.mtsolutions.domain.model.Address;
 import com.mtsolutions.domain.model.UserDocument;
+import com.mtsolutions.domain.model.UserPage;
 import com.mtsolutions.domain.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -32,6 +33,9 @@ import java.util.UUID;
 @ApplicationScoped
 @Slf4j
 public class UserService {
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final UserRepository userRepository;
     private final AddressService addressService;
@@ -108,6 +112,26 @@ public class UserService {
         this.requireSameUser(userId, Features.GET_USER);
         return this.userRepository.findByIdOptional(userId)
                 .orElseThrow(() -> new UserNotFoundException(Features.GET_USER));
+    }
+
+    public UserPage listUsers(int page, int size) {
+        int currentPage = page;
+        int pageSize = size;
+
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+
+        if (pageSize <= 0) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageSize > MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
+        }
+
+        List<User> users = this.userRepository.findPage(currentPage, pageSize);
+        long totalElements = this.userRepository.count();
+        return new UserPage(users, currentPage, pageSize, totalElements);
     }
 
     @Transactional

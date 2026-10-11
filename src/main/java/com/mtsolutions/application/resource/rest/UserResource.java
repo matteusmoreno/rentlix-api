@@ -5,8 +5,10 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.UserResourceExamples;
 import com.mtsolutions.domain.controller.UserController;
 import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
+import com.mtsolutions.domain.dto.response.UserPageResponseDto;
 import com.mtsolutions.domain.dto.response.UserResponseDto;
 import com.mtsolutions.domain.entity.User;
+import com.mtsolutions.domain.model.UserPage;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.PermitAll;
@@ -15,6 +17,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -76,6 +79,22 @@ public class UserResource {
 
         return Response.status(Response.Status.CREATED)
                 .entity(new UserResponseDto(user))
+                .build();
+    }
+
+    @GET
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List users",
+            description = "Lists users with pagination. Page starts at 0. Size defaults to 20 and the maximum is 100."
+    )
+    public Response listUsers(@QueryParam(RequestParam.PAGE) @DefaultValue("0") int page,
+                              @QueryParam(RequestParam.SIZE) @DefaultValue("20") int size) {
+        UserPage userPage = this.userController.listUsers(page, size);
+
+        return Response.status(Response.Status.OK)
+                .entity(new UserPageResponseDto(userPage))
                 .build();
     }
 

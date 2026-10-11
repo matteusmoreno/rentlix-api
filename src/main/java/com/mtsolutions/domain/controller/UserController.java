@@ -3,6 +3,7 @@ package com.mtsolutions.domain.controller;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateUserRequestDto;
 import com.mtsolutions.domain.entity.User;
+import com.mtsolutions.domain.model.UserPage;
 import com.mtsolutions.domain.service.UserService;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -25,6 +26,10 @@ public class UserController {
 
     public User getUserById(UUID userId) throws RentlixApiException {
         return this.userService.getUserById(userId);
+    }
+
+    public UserPage listUsers(int page, int size) {
+        return this.userService.listUsers(page, size);
     }
 
     public void sendEmailVerification(UUID userId) throws RentlixApiException {

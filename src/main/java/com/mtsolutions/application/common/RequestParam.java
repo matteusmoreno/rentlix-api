@@ -10,6 +10,8 @@ public class RequestParam {
     public static final String COMPLEMENT = "complement";
     public static final String EMAIL = "email";
     public static final String TOKEN = "token";
+    public static final String PAGE = "page";
+    public static final String SIZE = "size";
 
     private RequestParam(){}
 
