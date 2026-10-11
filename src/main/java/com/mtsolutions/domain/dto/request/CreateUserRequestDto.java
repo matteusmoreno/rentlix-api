@@ -1,7 +1,6 @@
 package com.mtsolutions.domain.dto.request;
 
 import com.mtsolutions.domain.constant.MaritalStatus;
-import com.mtsolutions.domain.model.UserDocument;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,8 +30,6 @@ public record CreateUserRequestDto(
         @Email(message = "Email must be a valid email address")
         String email,
         @NotBlank(message = "Password cannot be blank")
-        String password,
-        String pictureUrl,
-        UserDocument userDocument
+        String password
 ) {
 }

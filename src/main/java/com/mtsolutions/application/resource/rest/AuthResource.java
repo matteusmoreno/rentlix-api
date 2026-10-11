@@ -15,6 +15,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
@@ -37,10 +38,12 @@ public class AuthResource {
             description = "Authenticate a user and return a token"
     )
     @RequestBody(
+            required = true,
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON,
-                    examples  = @ExampleObject(
-                            name  = "Login",
+                    schema = @Schema(implementation = LoginRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Login",
                             value = AuthExamples.LOGIN_REQUEST_EXAMPLE
                     )
             )

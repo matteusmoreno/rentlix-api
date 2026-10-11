@@ -1,0 +1,18 @@
+package com.mtsolutions.domain.constant;
+
+import lombok.Getter;
+
+@Getter
+public enum CloudinaryFolder {
+
+    USER_PICTURE("rentlix/users/pictures", "image"),
+    USER_DOCUMENT("rentlix/users/documents", "raw");
+
+    private final String path;
+    private final String resourceType;
+
+    CloudinaryFolder(String path, String resourceType) {
+        this.path = path;
+        this.resourceType = resourceType;
+    }
+}

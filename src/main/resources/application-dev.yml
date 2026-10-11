@@ -6,6 +6,24 @@ quarkus:
     cors:
       enabled: true
       origins: "*"
+    auth:
+      permission:
+        public:
+          paths:
+            - /v1/auth/login
+            - /v1/users/create
+            - /v1/users/verify-email
+            - "/v1/users/*/email-verification"
+            - /v1/addresses
+            - "/q/*"
+            - /swagger-ui
+            - "/swagger-ui/*"
+            - /openapi
+            - "/openapi/*"
+          policy: permit
+        user:
+          paths: "/v1/users/*"
+          policy: authenticated
   application:
     name: rentlix-api
 
@@ -36,6 +54,10 @@ quarkus:
     always-include: true
     path: /swagger-ui
 
+  smallrye-openapi:
+    security-scheme: jwt
+    security-scheme-name: jwt
+
   rest-client:
     via-cep:
       url: ${APP_VIACEP_URL:https://viacep.com.br}
@@ -63,6 +85,12 @@ smallrye:
     sign:
       key:
         location: ${JWT_PRIVATE_KEY_LOCATION:privateKey.pem}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:derlk97mv}
+  api-key: ${CLOUDINARY_API_KEY:824121213419885}
+  api-secret: ${CLOUDINARY_API_SECRET:4SqhFXIjBGjCa4WPWGzWCYw5qtA}
+
 
 # Application Configuration
 app:

@@ -21,16 +21,7 @@ public class UserResourceExamples {
                     "complement": "Apto 42"
                 },
                 "email": "ana.souza@email.com",
-                "password": "senha123",
-                "pictureUrl": "https://example.com/pictures/ana-souza.jpg",
-                "userDocument": {
-                    "cnhUrl": "https://example.com/documents/cnh.pdf",
-                    "cpfUrl": "https://example.com/documents/cpf.pdf",
-                    "rgUrl": "https://example.com/documents/rg.pdf",
-                    "proofOfResidenceUrl": "https://example.com/documents/comprovante.pdf",
-                    "criminalRecordUrl": "https://example.com/documents/antecedentes.pdf",
-                    "passportUrl": "https://example.com/documents/passaporte.pdf"
-                }
+                "password": "senha123"
             }
             """;
 
