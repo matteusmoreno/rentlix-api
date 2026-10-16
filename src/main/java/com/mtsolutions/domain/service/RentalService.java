@@ -1,7 +1,10 @@
 package com.mtsolutions.domain.service;
 
 import com.mtsolutions.application.common.Features;
+import com.mtsolutions.application.component.ContextComponent;
+import com.mtsolutions.application.component.ContextUser;
 import com.mtsolutions.application.component.DateComponent;
+import com.mtsolutions.application.exception.AccessDeniedException;
 import com.mtsolutions.application.exception.AssetNotFoundException;
 import com.mtsolutions.application.exception.AssetStatusConflictException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
@@ -21,6 +24,7 @@ import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
 import com.mtsolutions.domain.entity.Rental;
 import com.mtsolutions.domain.entity.User;
+import com.mtsolutions.domain.model.RentalPage;
 import com.mtsolutions.domain.repository.AssetRepository;
 import com.mtsolutions.domain.repository.CompanyMemberRepository;
 import com.mtsolutions.domain.repository.RentalRepository;
@@ -30,17 +34,22 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
 public class RentalService {
 
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final RentalRepository rentalRepository;
     private final AssetRepository assetRepository;
     private final UserRepository userRepository;
     private final CompanyMemberRepository companyMemberRepository;
     private final CompanyService companyService;
+    private final ContextComponent contextComponent;
     private final DateComponent dateComponent;
 
     public RentalService(RentalRepository rentalRepository,
@@ -48,12 +57,14 @@ public class RentalService {
                          UserRepository userRepository,
                          CompanyMemberRepository companyMemberRepository,
                          CompanyService companyService,
+                         ContextComponent contextComponent,
                          DateComponent dateComponent) {
         this.rentalRepository = rentalRepository;
         this.assetRepository = assetRepository;
         this.userRepository = userRepository;
         this.companyMemberRepository = companyMemberRepository;
         this.companyService = companyService;
+        this.contextComponent = contextComponent;
         this.dateComponent = dateComponent;
     }
 
@@ -132,4 +143,43 @@ public class RentalService {
         log.info("Rental finished: {}", rental.getRentalId());
         return rental;
     }
+
+    @Transactional
+    public RentalPage listRentals(UUID companyId, int page, int size) throws RentlixApiException {
+        this.companyService.requireMemberCompany(companyId, Features.LIST_RENTALS);
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        CompanyMember member = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
+                .orElseThrow(() -> new AccessDeniedException(Features.LIST_RENTALS));
+
+        PageWindow window = this.pageWindow(page, size);
+        List<Rental> rentals;
+        long totalElements;
+        if (member.getRole() == UserRole.ADMIN) {
+            rentals = this.rentalRepository.findPageByCompany(companyId, window.page(), window.size());
+            totalElements = this.rentalRepository.countByCompany(companyId);
+        } else if (member.getRole() == UserRole.LESSEE) {
+            rentals = this.rentalRepository.findPageByCompanyAndLessee(companyId, currentUser.getUserId(), window.page(), window.size());
+            totalElements = this.rentalRepository.countByCompanyAndLessee(companyId, currentUser.getUserId());
+        } else {
+            throw new AccessDeniedException(Features.LIST_RENTALS);
+        }
+        return new RentalPage(rentals, window.page(), window.size(), totalElements);
+    }
+
+    private PageWindow pageWindow(int page, int size) {
+        int currentPage = page;
+        int pageSize = size;
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+        if (pageSize <= 0) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageSize > MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
+        }
+        return new PageWindow(currentPage, pageSize);
+    }
+
+    private record PageWindow(int page, int size) {}
 }

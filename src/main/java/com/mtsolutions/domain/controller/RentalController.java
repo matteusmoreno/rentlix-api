@@ -3,6 +3,7 @@ package com.mtsolutions.domain.controller;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
 import com.mtsolutions.domain.entity.Rental;
+import com.mtsolutions.domain.model.RentalPage;
 import com.mtsolutions.domain.service.RentalService;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -23,5 +24,9 @@ public class RentalController {
 
     public Rental finishRental(UUID rentalId) throws RentlixApiException {
         return this.rentalService.finishRental(rentalId);
+    }
+
+    public RentalPage listRentals(UUID companyId, int page, int size) throws RentlixApiException {
+        return this.rentalService.listRentals(companyId, page, size);
     }
 }

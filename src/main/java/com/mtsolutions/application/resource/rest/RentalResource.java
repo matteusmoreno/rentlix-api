@@ -5,17 +5,22 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.RentalResourceExamples;
 import com.mtsolutions.domain.controller.RentalController;
 import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
+import com.mtsolutions.domain.dto.response.RentalPageResponseDto;
 import com.mtsolutions.domain.dto.response.RentalResponseDto;
 import com.mtsolutions.domain.entity.Rental;
+import com.mtsolutions.domain.model.RentalPage;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -80,6 +85,24 @@ public class RentalResource {
 
         return Response.status(Response.Status.OK)
                 .entity(new RentalResponseDto(rental))
+                .build();
+    }
+
+    @GET
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List rentals",
+            description = "Lists the rentals of a company, newest first. An admin sees every rental of the company. A lessee sees only the rentals where they are the lessee. Page starts at 0. Size defaults to 20 and the maximum is 100."
+    )
+    public Response list(
+            @QueryParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @QueryParam(RequestParam.PAGE) @DefaultValue("0") int page,
+            @QueryParam(RequestParam.SIZE) @DefaultValue("20") int size) throws RentlixApiException {
+        RentalPage rentalPage = this.rentalController.listRentals(companyId, page, size);
+
+        return Response.status(Response.Status.OK)
+                .entity(new RentalPageResponseDto(rentalPage))
                 .build();
     }
 }
