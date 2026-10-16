@@ -19,6 +19,7 @@ import com.mtsolutions.domain.dto.request.CreatePropertyRequestDto;
 import com.mtsolutions.domain.dto.request.CreateVehicleRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
+import com.mtsolutions.domain.model.AssetPage;
 import com.mtsolutions.domain.model.PropertyDetails;
 import com.mtsolutions.domain.model.VehicleDetails;
 import com.mtsolutions.domain.repository.AssetRepository;
@@ -27,12 +28,16 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
 public class AssetService {
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final AssetRepository assetRepository;
     private final CompanyService companyService;
@@ -99,6 +104,15 @@ public class AssetService {
             throw new AssetNotFoundException(Features.GET_PUBLIC_ASSET);
         }
         return asset;
+    }
+
+    @Transactional
+    public AssetPage listAssets(UUID companyId, int page, int size) throws RentlixApiException {
+        this.companyService.requireMemberCompany(companyId, Features.LIST_ASSETS);
+        PageWindow window = this.pageWindow(page, size);
+        List<Asset> assets = this.assetRepository.findPageByCompany(companyId, window.page(), window.size());
+        long totalElements = this.assetRepository.countByCompany(companyId);
+        return new AssetPage(assets, window.page(), window.size(), totalElements);
     }
 
     @Transactional
@@ -248,5 +262,22 @@ public class AssetService {
         }
         return new AssetDetails(null, this.property(request.property()));
     }
+
+    private PageWindow pageWindow(int page, int size) {
+        int currentPage = page;
+        int pageSize = size;
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+        if (pageSize <= 0) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageSize > MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
+        }
+        return new PageWindow(currentPage, pageSize);
+    }
+
+    private record PageWindow(int page, int size) {}
 
 }

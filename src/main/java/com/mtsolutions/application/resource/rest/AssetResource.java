@@ -5,9 +5,11 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.AssetResourceExamples;
 import com.mtsolutions.domain.controller.AssetController;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
+import com.mtsolutions.domain.dto.response.AssetPageResponseDto;
 import com.mtsolutions.domain.dto.response.AssetResponseDto;
 import com.mtsolutions.domain.dto.response.PublicAssetResponseDto;
 import com.mtsolutions.domain.entity.Asset;
+import com.mtsolutions.domain.model.AssetPage;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.PermitAll;
@@ -15,11 +17,13 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -73,6 +77,24 @@ public class AssetResource {
 
         return Response.status(Response.Status.CREATED)
                 .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @GET
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List assets",
+            description = "Lists the assets of a company, newest first. The authenticated user must be a member of that company. Page starts at 0. Size defaults to 20 and the maximum is 100."
+    )
+    public Response list(
+            @QueryParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @QueryParam(RequestParam.PAGE) @DefaultValue("0") int page,
+            @QueryParam(RequestParam.SIZE) @DefaultValue("20") int size) throws RentlixApiException {
+        AssetPage assetPage = this.assetController.listAssets(companyId, page, size);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetPageResponseDto(assetPage))
                 .build();
     }
 

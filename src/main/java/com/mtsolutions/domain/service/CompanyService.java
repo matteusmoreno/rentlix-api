@@ -229,6 +229,13 @@ public class CompanyService {
         return company;
     }
 
+    protected Company requireMemberCompany(UUID companyId, Features feature) throws RentlixApiException {
+        Company company = this.companyRepository.findByIdOptional(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(feature));
+        this.requireCompanyMember(companyId, feature);
+        return company;
+    }
+
     protected void requireCompanyMember(UUID companyId, Features feature) throws RentlixApiException {
         ContextUser currentUser = this.contextComponent.getCurrentUser();
         if (currentUser == null) {

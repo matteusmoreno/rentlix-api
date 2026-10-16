@@ -3,6 +3,7 @@ package com.mtsolutions.domain.controller;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
 import com.mtsolutions.domain.entity.Asset;
+import com.mtsolutions.domain.model.AssetPage;
 import com.mtsolutions.domain.service.AssetService;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -27,6 +28,10 @@ public class AssetController {
 
     public Asset getPublicAsset(UUID assetId) throws RentlixApiException {
         return this.assetService.getPublicAsset(assetId);
+    }
+
+    public AssetPage listAssets(UUID companyId, int page, int size) throws RentlixApiException {
+        return this.assetService.listAssets(companyId, page, size);
     }
 
     public Asset uploadImage(UUID assetId, byte[] image) throws RentlixApiException {
