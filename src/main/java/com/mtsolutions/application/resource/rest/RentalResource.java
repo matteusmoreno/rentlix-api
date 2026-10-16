@@ -5,6 +5,7 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.RentalResourceExamples;
 import com.mtsolutions.domain.controller.RentalController;
 import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
+import com.mtsolutions.domain.dto.request.RenewRentalRequestDto;
 import com.mtsolutions.domain.dto.response.RentalPageResponseDto;
 import com.mtsolutions.domain.dto.response.RentalResponseDto;
 import com.mtsolutions.domain.entity.Rental;
@@ -89,6 +90,36 @@ public class RentalResource {
     public Response finish(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
         Rental rental = this.rentalController.finishRental(rentalId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new RentalResponseDto(rental))
+                .build();
+    }
+
+    @POST
+    @Path("/{rentalId}/renew")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Renew rental",
+            description = "Extends the end date of an active rental. The price, the price period and the rented asset stay the same. The authenticated user must be an admin of the company that owns the asset."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = RenewRentalRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Renew Rental",
+                            value = RentalResourceExamples.RENEW_RENTAL_EXAMPLE
+                    )
+            )
+    )
+    public Response renew(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId,
+            @Valid RenewRentalRequestDto request) throws RentlixApiException {
+        Rental rental = this.rentalController.renewRental(rentalId, request);
 
         return Response.status(Response.Status.OK)
                 .entity(new RentalResponseDto(rental))

@@ -11,5 +11,11 @@ public class RentalResourceExamples {
             }
             """;
 
+    public static final String RENEW_RENTAL_EXAMPLE = """
+            {
+                "endDate": "2026-11-27"
+            }
+            """;
+
     private RentalResourceExamples() {}
 }

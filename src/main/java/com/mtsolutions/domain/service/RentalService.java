@@ -21,6 +21,7 @@ import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.RentalStatus;
 import com.mtsolutions.domain.constant.UserRole;
 import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
+import com.mtsolutions.domain.dto.request.RenewRentalRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
@@ -146,6 +147,21 @@ public class RentalService {
         this.assetRepository.persist(asset);
 
         log.info("Rental finished: {}", rental.getRentalId());
+        return rental;
+    }
+
+    @Transactional
+    public Rental renewRental(UUID rentalId, RenewRentalRequestDto request) throws RentlixApiException {
+        Rental rental = this.requireActiveRental(rentalId, Features.RENEW_RENTAL);
+        if (request.endDate().isBefore(rental.getEndDate())) {
+            throw new InvalidRentalPeriodException(Features.RENEW_RENTAL);
+        }
+
+        rental.setEndDate(request.endDate());
+        rental.setUpdatedAt(this.dateComponent.now());
+        this.rentalRepository.persist(rental);
+
+        log.info("Rental renewed: {}", rental.getRentalId());
         return rental;
     }
 

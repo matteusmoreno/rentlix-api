@@ -2,6 +2,7 @@ package com.mtsolutions.domain.controller;
 
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
+import com.mtsolutions.domain.dto.request.RenewRentalRequestDto;
 import com.mtsolutions.domain.entity.Rental;
 import com.mtsolutions.domain.model.RentalPage;
 import com.mtsolutions.domain.service.RentalService;
@@ -24,6 +25,10 @@ public class RentalController {
 
     public Rental finishRental(UUID rentalId) throws RentlixApiException {
         return this.rentalService.finishRental(rentalId);
+    }
+
+    public Rental renewRental(UUID rentalId, RenewRentalRequestDto request) throws RentlixApiException {
+        return this.rentalService.renewRental(rentalId, request);
     }
 
     public RentalPage listRentals(UUID companyId, int page, int size) throws RentlixApiException {
