@@ -8,6 +8,7 @@ import com.mtsolutions.application.exception.AccessDeniedException;
 import com.mtsolutions.application.exception.AssetNotFoundException;
 import com.mtsolutions.application.exception.AssetStatusConflictException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
+import com.mtsolutions.application.exception.DocumentNotFoundException;
 import com.mtsolutions.application.exception.InvalidLesseeException;
 import com.mtsolutions.application.exception.InvalidRentalPeriodException;
 import com.mtsolutions.application.exception.RentalNotFoundException;
@@ -15,6 +16,7 @@ import com.mtsolutions.application.exception.RentalStatusConflictException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
 import com.mtsolutions.domain.constant.AssetStatus;
+import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.RentalStatus;
 import com.mtsolutions.domain.constant.UserRole;
@@ -49,6 +51,7 @@ public class RentalService {
     private final UserRepository userRepository;
     private final CompanyMemberRepository companyMemberRepository;
     private final CompanyService companyService;
+    private final CloudinaryService cloudinaryService;
     private final ContextComponent contextComponent;
     private final DateComponent dateComponent;
 
@@ -57,6 +60,7 @@ public class RentalService {
                          UserRepository userRepository,
                          CompanyMemberRepository companyMemberRepository,
                          CompanyService companyService,
+                         CloudinaryService cloudinaryService,
                          ContextComponent contextComponent,
                          DateComponent dateComponent) {
         this.rentalRepository = rentalRepository;
@@ -64,6 +68,7 @@ public class RentalService {
         this.userRepository = userRepository;
         this.companyMemberRepository = companyMemberRepository;
         this.companyService = companyService;
+        this.cloudinaryService = cloudinaryService;
         this.contextComponent = contextComponent;
         this.dateComponent = dateComponent;
     }
@@ -161,6 +166,61 @@ public class RentalService {
             return rental;
         }
         throw new AccessDeniedException(Features.GET_RENTAL);
+    }
+
+    @Transactional
+    public Rental uploadContract(UUID rentalId, byte[] fileBytes) throws RentlixApiException {
+        Rental rental = this.requireActiveRental(rentalId, Features.UPLOAD_RENTAL_CONTRACT);
+
+        if (rental.getContractUrl() != null && !rental.getContractUrl().isBlank()) {
+            String publicId = this.cloudinaryService.extractPublicId(rental.getContractUrl());
+            if (publicId != null) {
+                this.cloudinaryService.delete(publicId, CloudinaryFolder.RENTAL_CONTRACT.getResourceType(), Features.UPLOAD_RENTAL_CONTRACT);
+            }
+        }
+
+        String url = this.cloudinaryService.upload(
+                fileBytes,
+                rental.getRentalId().toString(),
+                CloudinaryFolder.RENTAL_CONTRACT,
+                Features.UPLOAD_RENTAL_CONTRACT
+        );
+        rental.setContractUrl(url);
+        rental.setUpdatedAt(this.dateComponent.now());
+        this.rentalRepository.persist(rental);
+
+        log.info("Contract uploaded for rental: {}", rental.getRentalId());
+        return rental;
+    }
+
+    @Transactional
+    public Rental deleteContract(UUID rentalId) throws RentlixApiException {
+        Rental rental = this.requireActiveRental(rentalId, Features.DELETE_RENTAL_CONTRACT);
+
+        if (rental.getContractUrl() == null || rental.getContractUrl().isBlank()) {
+            throw new DocumentNotFoundException(Features.DELETE_RENTAL_CONTRACT);
+        }
+
+        String publicId = this.cloudinaryService.extractPublicId(rental.getContractUrl());
+        if (publicId != null) {
+            this.cloudinaryService.delete(publicId, CloudinaryFolder.RENTAL_CONTRACT.getResourceType(), Features.DELETE_RENTAL_CONTRACT);
+        }
+        rental.setContractUrl(null);
+        rental.setUpdatedAt(this.dateComponent.now());
+        this.rentalRepository.persist(rental);
+
+        log.info("Contract deleted for rental: {}", rental.getRentalId());
+        return rental;
+    }
+
+    private Rental requireActiveRental(UUID rentalId, Features feature) throws RentlixApiException {
+        Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
+                .orElseThrow(() -> new RentalNotFoundException(feature));
+        this.companyService.requireAdminCompany(rental.getAsset().getCompany().getCompanyId(), feature);
+        if (rental.getStatus() != RentalStatus.ACTIVE) {
+            throw new RentalStatusConflictException(feature);
+        }
+        return rental;
     }
 
     @Transactional

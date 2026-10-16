@@ -15,6 +15,7 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -24,12 +25,18 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.UUID;
 
 @RequestScoped
@@ -50,7 +57,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create rental",
-            description = "Creates an active rental for an available asset of an active company and marks the asset as rented. The price and the price period are copied from the asset. The contract URL stays empty until the contract is generated. The lessee must be a lessee of that company. The authenticated user must be an admin of that company."
+            description = "Creates an active rental for an available asset of an active company and marks the asset as rented. The price and the price period are copied from the asset. The contract URL stays empty until a contract PDF is uploaded. The lessee must be a lessee of that company. The authenticated user must be an admin of that company."
     )
     @RequestBody(
             required = true,
@@ -121,5 +128,55 @@ public class RentalResource {
         return Response.status(Response.Status.OK)
                 .entity(new RentalResponseDto(rental))
                 .build();
+    }
+
+    @POST
+    @Path("/{rentalId}/contract")
+    @Authenticated
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Upload rental contract",
+            description = "Uploads the contract PDF of an active rental and replaces the previous one. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response uploadContract(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId,
+            @RestForm("contract")
+            @NotNull(message = "contract is required")
+            @Schema(type = SchemaType.STRING, format = "binary", description = "Contract PDF", required = true)
+            FileUpload contract) throws RentlixApiException {
+        Rental rental = this.rentalController.uploadContract(rentalId, this.read(contract));
+
+        return Response.status(Response.Status.OK)
+                .entity(new RentalResponseDto(rental))
+                .build();
+    }
+
+    @DELETE
+    @Path("/{rentalId}/contract")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Delete rental contract",
+            description = "Removes the contract PDF of an active rental. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response deleteContract(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
+        Rental rental = this.rentalController.deleteContract(rentalId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new RentalResponseDto(rental))
+                .build();
+    }
+
+    private byte[] read(FileUpload file) {
+        if (file == null || file.uploadedFile() == null) {
+            return null;
+        }
+        try {
+            return Files.readAllBytes(file.uploadedFile());
+        } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
     }
 }

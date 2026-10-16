@@ -33,4 +33,12 @@ public class RentalController {
     public Rental getRental(UUID rentalId) throws RentlixApiException {
         return this.rentalService.getRental(rentalId);
     }
+
+    public Rental uploadContract(UUID rentalId, byte[] fileBytes) throws RentlixApiException {
+        return this.rentalService.uploadContract(rentalId, fileBytes);
+    }
+
+    public Rental deleteContract(UUID rentalId) throws RentlixApiException {
+        return this.rentalService.deleteContract(rentalId);
+    }
 }
