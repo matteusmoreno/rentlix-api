@@ -26,6 +26,7 @@ public enum Features {
     CREATE_RENTAL,
     FINISH_RENTAL,
     LIST_RENTALS,
+    GET_RENTAL,
     UPDATE_USER,
     GET_USER,
     SEND_EMAIL_VERIFICATION,

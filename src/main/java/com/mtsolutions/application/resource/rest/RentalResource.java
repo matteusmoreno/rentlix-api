@@ -105,4 +105,21 @@ public class RentalResource {
                 .entity(new RentalPageResponseDto(rentalPage))
                 .build();
     }
+
+    @GET
+    @Path("/{rentalId}")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Get rental",
+            description = "Returns a rental. An admin of the company that owns the asset can see it. A lessee can see it only when they are the lessee."
+    )
+    public Response getRental(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
+        Rental rental = this.rentalController.getRental(rentalId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new RentalResponseDto(rental))
+                .build();
+    }
 }

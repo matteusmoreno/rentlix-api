@@ -145,6 +145,25 @@ public class RentalService {
     }
 
     @Transactional
+    public Rental getRental(UUID rentalId) throws RentlixApiException {
+        Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
+                .orElseThrow(() -> new RentalNotFoundException(Features.GET_RENTAL));
+        UUID companyId = rental.getAsset().getCompany().getCompanyId();
+        this.companyService.requireCompanyMember(companyId, Features.GET_RENTAL);
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        CompanyMember member = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
+                .orElseThrow(() -> new AccessDeniedException(Features.GET_RENTAL));
+
+        if (member.getRole() == UserRole.ADMIN) {
+            return rental;
+        }
+        if (member.getRole() == UserRole.LESSEE && rental.getLessee().getUserId().equals(currentUser.getUserId())) {
+            return rental;
+        }
+        throw new AccessDeniedException(Features.GET_RENTAL);
+    }
+
+    @Transactional
     public RentalPage listRentals(UUID companyId, int page, int size) throws RentlixApiException {
         this.companyService.requireMemberCompany(companyId, Features.LIST_RENTALS);
         ContextUser currentUser = this.contextComponent.getCurrentUser();

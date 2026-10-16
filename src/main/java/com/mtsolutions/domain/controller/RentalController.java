@@ -29,4 +29,8 @@ public class RentalController {
     public RentalPage listRentals(UUID companyId, int page, int size) throws RentlixApiException {
         return this.rentalService.listRentals(companyId, page, size);
     }
+
+    public Rental getRental(UUID rentalId) throws RentlixApiException {
+        return this.rentalService.getRental(rentalId);
+    }
 }
