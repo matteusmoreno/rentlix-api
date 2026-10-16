@@ -7,6 +7,8 @@ import com.mtsolutions.application.exception.AssetStatusConflictException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.InvalidLesseeException;
 import com.mtsolutions.application.exception.InvalidRentalPeriodException;
+import com.mtsolutions.application.exception.RentalNotFoundException;
+import com.mtsolutions.application.exception.RentalStatusConflictException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
 import com.mtsolutions.domain.constant.AssetStatus;
@@ -28,6 +30,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
@@ -101,6 +104,32 @@ public class RentalService {
         this.rentalRepository.persist(rental);
 
         log.info("Rental created with ID: {}", rental.getRentalId());
+        return rental;
+    }
+
+    @Transactional
+    public Rental finishRental(UUID rentalId) throws RentlixApiException {
+        Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
+                .orElseThrow(() -> new RentalNotFoundException(Features.FINISH_RENTAL));
+        Asset asset = rental.getAsset();
+        this.companyService.requireAdminCompany(asset.getCompany().getCompanyId(), Features.FINISH_RENTAL);
+
+        if (!RentalStatus.FINISHED.getValidPreviousStatuses().contains(rental.getStatus())) {
+            throw new RentalStatusConflictException(Features.FINISH_RENTAL);
+        }
+        if (asset.getStatus() != AssetStatus.RENTED) {
+            throw new AssetStatusConflictException(Features.FINISH_RENTAL);
+        }
+
+        LocalDateTime now = this.dateComponent.now();
+        rental.setStatus(RentalStatus.FINISHED);
+        rental.setUpdatedAt(now);
+        asset.setStatus(AssetStatus.AVAILABLE);
+        asset.setUpdatedAt(now);
+        this.rentalRepository.persist(rental);
+        this.assetRepository.persist(asset);
+
+        log.info("Rental finished: {}", rental.getRentalId());
         return rental;
     }
 }

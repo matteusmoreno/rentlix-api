@@ -319,7 +319,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Activate asset",
-            description = "Marks a rented, maintenance or inactive asset as available. The authenticated user must be an admin of the company that owns the asset."
+            description = "Marks a maintenance or inactive asset as available. A rented asset with an active rental must be finished first. The authenticated user must be an admin of the company that owns the asset."
     )
     public Response activate(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {

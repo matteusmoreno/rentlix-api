@@ -17,6 +17,8 @@ public enum Errors {
     ASSET_DETAILS_INVALID("Asset details do not match the type"),
     MEMBER_ROLE_INVALID("Member role is invalid"),
     RENTAL_PERIOD_INVALID("Rental period is invalid"),
+    RENTAL_NOT_FOUND("Rental not found"),
+    RENTAL_STATUS_CONFLICT("Rental status does not allow this action"),
     LESSEE_INVALID("Lessee is invalid"),
     USER_NOT_FOUND("User not found"),
     INVALID_CREDENTIALS("Invalid credentials"),

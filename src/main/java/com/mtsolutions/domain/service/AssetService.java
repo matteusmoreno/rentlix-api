@@ -15,6 +15,7 @@ import com.mtsolutions.domain.constant.AssetStatus;
 import com.mtsolutions.domain.constant.AssetType;
 import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.constant.CompanyStatus;
+import com.mtsolutions.domain.constant.RentalStatus;
 import com.mtsolutions.domain.dto.AssetDetails;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
 import com.mtsolutions.domain.dto.request.CreatePropertyRequestDto;
@@ -26,6 +27,7 @@ import com.mtsolutions.domain.model.AssetPage;
 import com.mtsolutions.domain.model.PropertyDetails;
 import com.mtsolutions.domain.model.VehicleDetails;
 import com.mtsolutions.domain.repository.AssetRepository;
+import com.mtsolutions.domain.repository.RentalRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -43,17 +45,20 @@ public class AssetService {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final AssetRepository assetRepository;
+    private final RentalRepository rentalRepository;
     private final CompanyService companyService;
     private final AddressService addressService;
     private final CloudinaryService cloudinaryService;
     private final DateComponent dateComponent;
 
     public AssetService(AssetRepository assetRepository,
+                        RentalRepository rentalRepository,
                         CompanyService companyService,
                         AddressService addressService,
                         CloudinaryService cloudinaryService,
                         DateComponent dateComponent) {
         this.assetRepository = assetRepository;
+        this.rentalRepository = rentalRepository;
         this.companyService = companyService;
         this.addressService = addressService;
         this.cloudinaryService = cloudinaryService;
@@ -248,6 +253,10 @@ public class AssetService {
 
     @Transactional
     public Asset activateAsset(UUID assetId) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.ACTIVATE_ASSET);
+        if (this.rentalRepository.existsByAssetIdAndStatus(asset.getAssetId(), RentalStatus.ACTIVE)) {
+            throw new AssetStatusConflictException(Features.ACTIVATE_ASSET);
+        }
         return this.changeStatus(assetId, AssetStatus.AVAILABLE, Features.ACTIVATE_ASSET);
     }
 

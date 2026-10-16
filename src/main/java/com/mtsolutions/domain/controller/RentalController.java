@@ -6,6 +6,8 @@ import com.mtsolutions.domain.entity.Rental;
 import com.mtsolutions.domain.service.RentalService;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
+
 @ApplicationScoped
 public class RentalController {
 
@@ -17,5 +19,9 @@ public class RentalController {
 
     public Rental createRental(CreateRentalRequestDto request) throws RentlixApiException {
         return this.rentalService.createRental(request);
+    }
+
+    public Rental finishRental(UUID rentalId) throws RentlixApiException {
+        return this.rentalService.finishRental(rentalId);
     }
 }

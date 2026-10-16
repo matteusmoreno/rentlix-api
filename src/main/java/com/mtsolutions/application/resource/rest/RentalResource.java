@@ -1,5 +1,6 @@
 package com.mtsolutions.application.resource.rest;
 
+import com.mtsolutions.application.common.RequestParam;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.RentalResourceExamples;
 import com.mtsolutions.domain.controller.RentalController;
@@ -10,9 +11,11 @@ import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -21,6 +24,8 @@ import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
+import java.util.UUID;
 
 @RequestScoped
 @Path("/v1/rentals")
@@ -57,6 +62,23 @@ public class RentalResource {
         Rental rental = this.rentalController.createRental(request);
 
         return Response.status(Response.Status.CREATED)
+                .entity(new RentalResponseDto(rental))
+                .build();
+    }
+
+    @POST
+    @Path("/{rentalId}/finish")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Finish rental",
+            description = "Finishes an active rental and marks the asset as available. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response finish(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
+        Rental rental = this.rentalController.finishRental(rentalId);
+
+        return Response.status(Response.Status.OK)
                 .entity(new RentalResponseDto(rental))
                 .build();
     }
