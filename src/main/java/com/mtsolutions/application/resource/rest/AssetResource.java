@@ -5,6 +5,7 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.AssetResourceExamples;
 import com.mtsolutions.domain.controller.AssetController;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateAssetRequestDto;
 import com.mtsolutions.domain.dto.response.AssetPageResponseDto;
 import com.mtsolutions.domain.dto.response.AssetResponseDto;
 import com.mtsolutions.domain.dto.response.PublicAssetPageResponseDto;
@@ -22,6 +23,7 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
@@ -128,6 +130,36 @@ public class AssetResource {
     public Response getAsset(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
         Asset asset = this.assetController.getAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @PUT
+    @Path("/{assetId}/update")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Update asset",
+            description = "Updates the asset information. A null field is left unchanged and a blank value is rejected. Type, company, images and status stay unchanged. The authenticated user must be an admin of the company that owns the asset."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = UpdateAssetRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Update Asset",
+                            value = AssetResourceExamples.UPDATE_ASSET_EXAMPLE
+                    )
+            )
+    )
+    public Response update(
+            @Valid UpdateAssetRequestDto request,
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.updateAsset(request, assetId);
 
         return Response.status(Response.Status.OK)
                 .entity(new AssetResponseDto(asset))

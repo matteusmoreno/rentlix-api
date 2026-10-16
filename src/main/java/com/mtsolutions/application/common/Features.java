@@ -11,6 +11,7 @@ public enum Features {
     CANCEL_COMPANY,
     REACTIVATE_COMPANY,
     CREATE_ASSET,
+    UPDATE_ASSET,
     GET_ASSET,
     LIST_ASSETS,
     GET_PUBLIC_ASSET,

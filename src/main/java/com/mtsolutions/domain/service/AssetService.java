@@ -12,12 +12,14 @@ import com.mtsolutions.application.exception.PictureNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.constant.AssetStatus;
+import com.mtsolutions.domain.constant.AssetType;
 import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.dto.AssetDetails;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
 import com.mtsolutions.domain.dto.request.CreatePropertyRequestDto;
 import com.mtsolutions.domain.dto.request.CreateVehicleRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateAssetRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.model.AssetPage;
@@ -86,6 +88,36 @@ public class AssetService {
 
         this.assetRepository.persist(asset);
         log.info("Asset created with ID: {}", asset.getAssetId());
+        return asset;
+    }
+
+    @Transactional
+    public Asset updateAsset(UpdateAssetRequestDto request, UUID assetId) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.UPDATE_ASSET);
+        log.info("Updating asset {}", assetId);
+
+        if (request.name() != null) asset.setName(request.name());
+        if (request.description() != null) asset.setDescription(request.description());
+        if (request.price() != null) asset.setPrice(request.price());
+        if (request.pricePeriod() != null) asset.setPricePeriod(request.pricePeriod());
+        if (request.vehicle() != null) {
+            if (asset.getType().getCategory() != AssetCategory.VEHICLE) {
+                throw new InvalidAssetDetailsException(Features.UPDATE_ASSET);
+            }
+            VehicleDetails vehicle = this.vehicle(request.vehicle());
+            this.ensureVehicleIsUnique(assetId, vehicle, Features.UPDATE_ASSET);
+            asset.setVehicle(vehicle);
+        }
+        if (request.property() != null) {
+            if (asset.getType().getCategory() == AssetCategory.VEHICLE) {
+                throw new InvalidAssetDetailsException(Features.UPDATE_ASSET);
+            }
+            asset.setProperty(this.property(request.property()));
+        }
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+
+        log.info("Asset updated: {}", asset.getAssetId());
         return asset;
     }
 
@@ -277,12 +309,21 @@ public class AssetService {
                 .build();
     }
 
-    protected void ensureVehicleIsUnique(VehicleDetails vehicle) throws RentlixApiException {
-        boolean plateExists = this.assetRepository.existsByPlate(vehicle.getPlate());
-        boolean renavamExists = vehicle.getRenavam() != null && this.assetRepository.existsByRenavam(vehicle.getRenavam());
-        boolean chassisExists = vehicle.getChassis() != null && this.assetRepository.existsByChassis(vehicle.getChassis());
+    protected void ensureVehicleIsUnique(UUID assetId, VehicleDetails vehicle, Features feature) throws RentlixApiException {
+        boolean plateExists;
+        boolean renavamExists;
+        boolean chassisExists;
+        if (assetId == null) {
+            plateExists = this.assetRepository.existsByPlate(vehicle.getPlate());
+            renavamExists = vehicle.getRenavam() != null && this.assetRepository.existsByRenavam(vehicle.getRenavam());
+            chassisExists = vehicle.getChassis() != null && this.assetRepository.existsByChassis(vehicle.getChassis());
+        } else {
+            plateExists = this.assetRepository.existsOtherByPlate(assetId, vehicle.getPlate());
+            renavamExists = vehicle.getRenavam() != null && this.assetRepository.existsOtherByRenavam(assetId, vehicle.getRenavam());
+            chassisExists = vehicle.getChassis() != null && this.assetRepository.existsOtherByChassis(assetId, vehicle.getChassis());
+        }
         if (plateExists || renavamExists || chassisExists) {
-            throw new AssetAlreadyExistsException(Features.CREATE_ASSET);
+            throw new AssetAlreadyExistsException(feature);
         }
     }
 
@@ -294,18 +335,26 @@ public class AssetService {
     }
 
     private AssetDetails validateAssetDetails(CreateAssetRequestDto request) throws RentlixApiException {
-        if (request.type().getCategory() == AssetCategory.VEHICLE) {
-            if (request.vehicle() == null) {
-                throw new InvalidAssetDetailsException(Features.CREATE_ASSET);
+        return this.assetDetails(request.type(), request.vehicle(), request.property(), null, Features.CREATE_ASSET);
+    }
+
+    private AssetDetails assetDetails(AssetType type,
+                                      CreateVehicleRequestDto vehicleRequest,
+                                      CreatePropertyRequestDto propertyRequest,
+                                      UUID assetId,
+                                      Features feature) throws RentlixApiException {
+        if (type.getCategory() == AssetCategory.VEHICLE) {
+            if (vehicleRequest == null) {
+                throw new InvalidAssetDetailsException(feature);
             }
-            VehicleDetails vehicle = this.vehicle(request.vehicle());
-            this.ensureVehicleIsUnique(vehicle);
+            VehicleDetails vehicle = this.vehicle(vehicleRequest);
+            this.ensureVehicleIsUnique(assetId, vehicle, feature);
             return new AssetDetails(vehicle, null);
         }
-        if (request.property() == null) {
-            throw new InvalidAssetDetailsException(Features.CREATE_ASSET);
+        if (propertyRequest == null) {
+            throw new InvalidAssetDetailsException(feature);
         }
-        return new AssetDetails(null, this.property(request.property()));
+        return new AssetDetails(null, this.property(propertyRequest));
     }
 
     private PageWindow pageWindow(int page, int size) {

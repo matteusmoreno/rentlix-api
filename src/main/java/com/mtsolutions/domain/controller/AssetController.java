@@ -2,6 +2,7 @@ package com.mtsolutions.domain.controller;
 
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateAssetRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.model.AssetPage;
 import com.mtsolutions.domain.service.AssetService;
@@ -20,6 +21,10 @@ public class AssetController {
 
     public Asset createAsset(CreateAssetRequestDto request) throws RentlixApiException {
         return this.assetService.createAsset(request);
+    }
+
+    public Asset updateAsset(UpdateAssetRequestDto request, UUID assetId) throws RentlixApiException {
+        return this.assetService.updateAsset(request, assetId);
     }
 
     public Asset getAsset(UUID assetId) throws RentlixApiException {
