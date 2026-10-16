@@ -1,0 +1,21 @@
+package com.mtsolutions.domain.controller;
+
+import com.mtsolutions.application.exception.RentlixApiException;
+import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.entity.Company;
+import com.mtsolutions.domain.service.CompanyService;
+import jakarta.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class CompanyController {
+
+    private final CompanyService companyService;
+
+    public CompanyController(CompanyService companyService) {
+        this.companyService = companyService;
+    }
+
+    public Company createCompany(CreateCompanyRequestDto request) throws RentlixApiException {
+        return this.companyService.createCompany(request);
+    }
+}

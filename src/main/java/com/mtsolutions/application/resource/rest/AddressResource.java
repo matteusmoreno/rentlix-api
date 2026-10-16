@@ -4,6 +4,7 @@ import com.mtsolutions.application.common.RequestParam;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.controller.AddressController;
 import com.mtsolutions.domain.model.Address;
+import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -25,6 +26,7 @@ public class AddressResource {
     }
 
     @GET
+    @PermitAll
     public Response getAddress(
             @QueryParam(RequestParam.ZIP_CODE) @NotBlank(message = "zipCode is required") @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP must follow the format 12345-678 or 12345678") String zipCode,
             @QueryParam(RequestParam.NUMBER) String number,

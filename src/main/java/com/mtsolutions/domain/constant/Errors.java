@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum Errors {
     INVALID_REQUEST("The request is invalid"),
     USER_ALREADY_EXISTS("User already exists"),
+    COMPANY_ALREADY_EXISTS("Company already exists"),
     USER_NOT_FOUND("User not found"),
     INVALID_CREDENTIALS("Invalid credentials"),
     ACCOUNT_NOT_ACTIVE("Account is not active"),

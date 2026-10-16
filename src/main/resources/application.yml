@@ -5,24 +5,6 @@ quarkus:
     cors:
       enabled: true
       origins: "*"
-    auth:
-      permission:
-        public:
-          paths:
-            - /v1/auth/login
-            - /v1/users/create
-            - /v1/users/verify-email
-            - "/v1/users/*/email-verification"
-            - /v1/addresses
-            - "/q/*"
-            - /swagger-ui
-            - "/swagger-ui/*"
-            - /openapi
-            - "/openapi/*"
-          policy: permit
-        user:
-          paths: "/v1/users/*"
-          policy: authenticated
   application:
     name: rentlix-api
 

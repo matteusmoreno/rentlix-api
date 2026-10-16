@@ -8,4 +8,8 @@ import java.util.UUID;
 
 @ApplicationScoped
 public class CompanyRepository implements PanacheRepositoryBase<Company, UUID> {
+
+    public boolean existsByCnpj(String cnpj) {
+        return count("cnpj", cnpj) > 0;
+    }
 }
