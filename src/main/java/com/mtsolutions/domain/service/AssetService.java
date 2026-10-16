@@ -4,6 +4,7 @@ import com.mtsolutions.application.common.Features;
 import com.mtsolutions.application.component.DateComponent;
 import com.mtsolutions.application.exception.AssetAlreadyExistsException;
 import com.mtsolutions.application.exception.AssetNotFoundException;
+import com.mtsolutions.application.exception.AssetStatusConflictException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.GalleryImageNotFoundException;
 import com.mtsolutions.application.exception.InvalidAssetDetailsException;
@@ -196,6 +197,42 @@ public class AssetService {
 
         log.info("Gallery image deleted for asset {} at position {}", assetId, position);
         return asset;
+    }
+
+    @Transactional
+    public Asset rentAsset(UUID assetId) throws RentlixApiException {
+        return this.changeStatus(assetId, AssetStatus.RENTED, Features.RENT_ASSET);
+    }
+
+    @Transactional
+    public Asset startMaintenance(UUID assetId) throws RentlixApiException {
+        return this.changeStatus(assetId, AssetStatus.MAINTENANCE, Features.START_ASSET_MAINTENANCE);
+    }
+
+    @Transactional
+    public Asset inactivateAsset(UUID assetId) throws RentlixApiException {
+        return this.changeStatus(assetId, AssetStatus.INACTIVE, Features.INACTIVATE_ASSET);
+    }
+
+    @Transactional
+    public Asset activateAsset(UUID assetId) throws RentlixApiException {
+        return this.changeStatus(assetId, AssetStatus.AVAILABLE, Features.ACTIVATE_ASSET);
+    }
+
+    private Asset changeStatus(UUID assetId, AssetStatus nextStatus, Features feature) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, feature);
+        this.validatePreviousStatus(asset, nextStatus, feature);
+        asset.setStatus(nextStatus);
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+        log.info("Asset {} status changed to {}", asset.getAssetId(), nextStatus);
+        return asset;
+    }
+
+    protected void validatePreviousStatus(Asset asset, AssetStatus nextStatus, Features feature) throws RentlixApiException {
+        if (!nextStatus.getValidPreviousStatuses().contains(asset.getStatus())) {
+            throw new AssetStatusConflictException(feature);
+        }
     }
 
     protected Asset requireAsset(UUID assetId, Features feature) throws RentlixApiException {

@@ -53,4 +53,20 @@ public class AssetController {
     public Asset deleteGalleryImage(UUID assetId, Integer position) throws RentlixApiException {
         return this.assetService.deleteGalleryImage(assetId, position);
     }
+
+    public Asset rentAsset(UUID assetId) throws RentlixApiException {
+        return this.assetService.rentAsset(assetId);
+    }
+
+    public Asset startMaintenance(UUID assetId) throws RentlixApiException {
+        return this.assetService.startMaintenance(assetId);
+    }
+
+    public Asset inactivateAsset(UUID assetId) throws RentlixApiException {
+        return this.assetService.inactivateAsset(assetId);
+    }
+
+    public Asset activateAsset(UUID assetId) throws RentlixApiException {
+        return this.assetService.activateAsset(assetId);
+    }
 }

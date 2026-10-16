@@ -230,6 +230,74 @@ public class AssetResource {
                 .build();
     }
 
+    @POST
+    @Path("/{assetId}/rent")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Rent asset",
+            description = "Marks an available asset as rented. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response rent(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.rentAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @POST
+    @Path("/{assetId}/maintenance")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Start asset maintenance",
+            description = "Marks an available asset as under maintenance. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response startMaintenance(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.startMaintenance(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @POST
+    @Path("/{assetId}/inactivate")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Inactivate asset",
+            description = "Marks an available asset as inactive. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response inactivate(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.inactivateAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @POST
+    @Path("/{assetId}/activate")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Activate asset",
+            description = "Marks a rented, maintenance or inactive asset as available. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response activate(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.activateAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
     private byte[] read(FileUpload file) {
         if (file == null || file.uploadedFile() == null) {
             return null;
