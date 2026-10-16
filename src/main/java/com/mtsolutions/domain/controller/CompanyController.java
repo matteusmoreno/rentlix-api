@@ -35,4 +35,16 @@ public class CompanyController {
     public List<CompanyMember> listMembers(UUID companyId) throws RentlixApiException {
         return this.companyService.listMembers(companyId);
     }
+
+    public Company suspendCompany(UUID companyId) throws RentlixApiException {
+        return this.companyService.suspendCompany(companyId);
+    }
+
+    public Company cancelCompany(UUID companyId) throws RentlixApiException {
+        return this.companyService.cancelCompany(companyId);
+    }
+
+    public Company reactivateCompany(UUID companyId) throws RentlixApiException {
+        return this.companyService.reactivateCompany(companyId);
+    }
 }

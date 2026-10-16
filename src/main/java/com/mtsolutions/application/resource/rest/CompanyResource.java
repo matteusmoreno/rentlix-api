@@ -138,4 +138,52 @@ public class CompanyResource {
                 .build();
     }
 
+    @POST
+    @Path("/{companyId}/suspend")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Suspend company",
+            description = "Suspends an active company. The authenticated user must be an admin of that company."
+    )
+    public Response suspend(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
+        Company company = this.companyController.suspendCompany(companyId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @POST
+    @Path("/{companyId}/cancel")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Cancel company",
+            description = "Cancels an active or suspended company. A canceled company cannot change status again. The authenticated user must be an admin of that company."
+    )
+    public Response cancel(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
+        Company company = this.companyController.cancelCompany(companyId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @POST
+    @Path("/{companyId}/reactivate")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Reactivate company",
+            description = "Reactivates a suspended company. A canceled company cannot be reactivated. The authenticated user must be an admin of that company."
+    )
+    public Response reactivate(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
+        Company company = this.companyController.reactivateCompany(companyId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
 }

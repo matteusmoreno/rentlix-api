@@ -8,6 +8,7 @@ import com.mtsolutions.application.exception.AccessDeniedException;
 import com.mtsolutions.application.exception.CompanyAlreadyExistsException;
 import com.mtsolutions.application.exception.CompanyMemberAlreadyExistsException;
 import com.mtsolutions.application.exception.CompanyNotFoundException;
+import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.InvalidMemberRoleException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
@@ -157,5 +158,74 @@ public class CompanyService {
 
         log.info("Listing members of company {}", companyId);
         return this.companyMemberRepository.findByCompanyId(companyId);
+    }
+
+    @Transactional
+    public Company suspendCompany(UUID companyId) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.SUSPEND_COMPANY);
+        this.validatePreviousStatus(company, CompanyStatus.SUSPENDED, Features.SUSPEND_COMPANY);
+
+        company.setStatus(CompanyStatus.SUSPENDED);
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+
+        log.info("Company suspended: {}", company.getCompanyId());
+        return company;
+    }
+
+    @Transactional
+    public Company cancelCompany(UUID companyId) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.CANCEL_COMPANY);
+        this.validatePreviousStatus(company, CompanyStatus.CANCELED, Features.CANCEL_COMPANY);
+
+        company.setStatus(CompanyStatus.CANCELED);
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+
+        log.info("Company canceled: {}", company.getCompanyId());
+        return company;
+    }
+
+    @Transactional
+    public Company reactivateCompany(UUID companyId) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.REACTIVATE_COMPANY);
+        this.validatePreviousStatus(company, CompanyStatus.ACTIVE, Features.REACTIVATE_COMPANY);
+
+        company.setStatus(CompanyStatus.ACTIVE);
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+
+        log.info("Company reactivated: {}", company.getCompanyId());
+        return company;
+    }
+
+    protected void validatePreviousStatus(Company company, CompanyStatus nextStatus, Features feature) throws RentlixApiException {
+        CompanyStatus currentStatus = company.getStatus();
+
+        if (currentStatus.isFinalStatus()) {
+            throw new CompanyStatusConflictException(feature);
+        }
+        if (!nextStatus.getValidPreviousStatuses().contains(currentStatus)) {
+            throw new CompanyStatusConflictException(feature);
+        }
+    }
+
+    protected Company requireAdminCompany(UUID companyId, Features feature) throws RentlixApiException {
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        if (currentUser == null) {
+            throw new AccessDeniedException(feature);
+        }
+
+        Company company = this.companyRepository.findByIdOptional(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(feature));
+
+        CompanyMember currentMember = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
+                .orElseThrow(() -> new AccessDeniedException(feature));
+
+        if (currentMember.getRole() != UserRole.ADMIN) {
+            throw new AccessDeniedException(feature);
+        }
+
+        return company;
     }
 }

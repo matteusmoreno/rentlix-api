@@ -8,6 +8,7 @@ public enum Errors {
     USER_ALREADY_EXISTS("User already exists"),
     COMPANY_ALREADY_EXISTS("Company already exists"),
     COMPANY_NOT_FOUND("Company not found"),
+    COMPANY_STATUS_CONFLICT("Company status does not allow this action"),
     COMPANY_MEMBER_ALREADY_EXISTS("Company member already exists"),
     MEMBER_ROLE_INVALID("Member role is invalid"),
     USER_NOT_FOUND("User not found"),
