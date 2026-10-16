@@ -11,6 +11,7 @@ public enum Errors {
     COMPANY_STATUS_CONFLICT("Company status does not allow this action"),
     COMPANY_MEMBER_ALREADY_EXISTS("Company member already exists"),
     ASSET_ALREADY_EXISTS("Asset already exists"),
+    ASSET_NOT_FOUND("Asset not found"),
     ASSET_DETAILS_INVALID("Asset details do not match the type"),
     MEMBER_ROLE_INVALID("Member role is invalid"),
     USER_NOT_FOUND("User not found"),

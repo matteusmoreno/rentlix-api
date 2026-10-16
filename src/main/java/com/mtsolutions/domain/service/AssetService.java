@@ -3,11 +3,14 @@ package com.mtsolutions.domain.service;
 import com.mtsolutions.application.common.Features;
 import com.mtsolutions.application.component.DateComponent;
 import com.mtsolutions.application.exception.AssetAlreadyExistsException;
+import com.mtsolutions.application.exception.AssetNotFoundException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.InvalidAssetDetailsException;
+import com.mtsolutions.application.exception.PictureNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.constant.AssetStatus;
+import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.dto.AssetDetails;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
@@ -24,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
@@ -32,15 +36,18 @@ public class AssetService {
     private final AssetRepository assetRepository;
     private final CompanyService companyService;
     private final AddressService addressService;
+    private final CloudinaryService cloudinaryService;
     private final DateComponent dateComponent;
 
     public AssetService(AssetRepository assetRepository,
                         CompanyService companyService,
                         AddressService addressService,
+                        CloudinaryService cloudinaryService,
                         DateComponent dateComponent) {
         this.assetRepository = assetRepository;
         this.companyService = companyService;
         this.addressService = addressService;
+        this.cloudinaryService = cloudinaryService;
         this.dateComponent = dateComponent;
     }
 
@@ -72,6 +79,53 @@ public class AssetService {
 
         this.assetRepository.persist(asset);
         log.info("Asset created with ID: {}", asset.getAssetId());
+        return asset;
+    }
+
+    @Transactional
+    public Asset uploadImage(UUID assetId, byte[] fileBytes) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.UPLOAD_ASSET_IMAGE);
+
+        if (asset.getImageUrl() != null && !asset.getImageUrl().isBlank()) {
+            String oldPublicId = this.cloudinaryService.extractPublicId(asset.getImageUrl());
+            if (oldPublicId != null) {
+                this.cloudinaryService.delete(oldPublicId, CloudinaryFolder.ASSET_IMAGE.getResourceType(), Features.UPLOAD_ASSET_IMAGE);
+            }
+        }
+
+        String url = this.cloudinaryService.upload(fileBytes, asset.getAssetId().toString(), CloudinaryFolder.ASSET_IMAGE, Features.UPLOAD_ASSET_IMAGE);
+        asset.setImageUrl(url);
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+
+        log.info("Image uploaded for asset: {}", asset.getAssetId());
+        return asset;
+    }
+
+    @Transactional
+    public Asset deleteImage(UUID assetId) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.DELETE_ASSET_IMAGE);
+
+        if (asset.getImageUrl() == null || asset.getImageUrl().isBlank()) {
+            throw new PictureNotFoundException(Features.DELETE_ASSET_IMAGE);
+        }
+
+        String publicId = this.cloudinaryService.extractPublicId(asset.getImageUrl());
+        if (publicId != null) {
+            this.cloudinaryService.delete(publicId, CloudinaryFolder.ASSET_IMAGE.getResourceType(), Features.DELETE_ASSET_IMAGE);
+        }
+        asset.setImageUrl(null);
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+
+        log.info("Image deleted for asset: {}", assetId);
+        return asset;
+    }
+
+    protected Asset requireAsset(UUID assetId, Features feature) throws RentlixApiException {
+        Asset asset = this.assetRepository.findByIdOptional(assetId)
+                .orElseThrow(() -> new AssetNotFoundException(feature));
+        this.companyService.requireAdminCompany(asset.getCompany().getCompanyId(), feature);
         return asset;
     }
 

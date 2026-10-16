@@ -6,6 +6,8 @@ import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.service.AssetService;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.util.UUID;
+
 @ApplicationScoped
 public class AssetController {
 
@@ -17,5 +19,13 @@ public class AssetController {
 
     public Asset createAsset(CreateAssetRequestDto request) throws RentlixApiException {
         return this.assetService.createAsset(request);
+    }
+
+    public Asset uploadImage(UUID assetId, byte[] image) throws RentlixApiException {
+        return this.assetService.uploadImage(assetId, image);
+    }
+
+    public Asset deleteImage(UUID assetId) throws RentlixApiException {
+        return this.assetService.deleteImage(assetId);
     }
 }
