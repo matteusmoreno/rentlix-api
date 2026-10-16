@@ -6,14 +6,17 @@ import com.mtsolutions.application.resource.rest.examples.AssetResourceExamples;
 import com.mtsolutions.domain.controller.AssetController;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
 import com.mtsolutions.domain.dto.response.AssetResponseDto;
+import com.mtsolutions.domain.dto.response.PublicAssetResponseDto;
 import com.mtsolutions.domain.entity.Asset;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -70,6 +73,40 @@ public class AssetResource {
 
         return Response.status(Response.Status.CREATED)
                 .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @GET
+    @Path("/{assetId}")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Get asset",
+            description = "Returns an asset with its vehicle or property details, main image and gallery. The authenticated user must be a member of the company that owns the asset."
+    )
+    public Response getAsset(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.getAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @GET
+    @Path("/{assetId}/public")
+    @PermitAll
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Get public asset",
+            description = "Returns the public listing of an available asset from an active company. Plate, renavam, chassis, property registration and the full address stay on the company endpoint."
+    )
+    public Response getPublicAsset(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetController.getPublicAsset(assetId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new PublicAssetResponseDto(asset))
                 .build();
     }
 

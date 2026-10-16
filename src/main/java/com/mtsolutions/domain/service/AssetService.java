@@ -84,6 +84,24 @@ public class AssetService {
     }
 
     @Transactional
+    public Asset getAsset(UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetRepository.findByIdOptional(assetId)
+                .orElseThrow(() -> new AssetNotFoundException(Features.GET_ASSET));
+        this.companyService.requireCompanyMember(asset.getCompany().getCompanyId(), Features.GET_ASSET);
+        return asset;
+    }
+
+    @Transactional
+    public Asset getPublicAsset(UUID assetId) throws RentlixApiException {
+        Asset asset = this.assetRepository.findByIdOptional(assetId)
+                .orElseThrow(() -> new AssetNotFoundException(Features.GET_PUBLIC_ASSET));
+        if (asset.getStatus() != AssetStatus.AVAILABLE || asset.getCompany().getStatus() != CompanyStatus.ACTIVE) {
+            throw new AssetNotFoundException(Features.GET_PUBLIC_ASSET);
+        }
+        return asset;
+    }
+
+    @Transactional
     public Asset uploadImage(UUID assetId, byte[] fileBytes) throws RentlixApiException {
         Asset asset = this.requireAsset(assetId, Features.UPLOAD_ASSET_IMAGE);
 

@@ -21,6 +21,14 @@ public class AssetController {
         return this.assetService.createAsset(request);
     }
 
+    public Asset getAsset(UUID assetId) throws RentlixApiException {
+        return this.assetService.getAsset(assetId);
+    }
+
+    public Asset getPublicAsset(UUID assetId) throws RentlixApiException {
+        return this.assetService.getPublicAsset(assetId);
+    }
+
     public Asset uploadImage(UUID assetId, byte[] image) throws RentlixApiException {
         return this.assetService.uploadImage(assetId, image);
     }

@@ -228,4 +228,14 @@ public class CompanyService {
 
         return company;
     }
+
+    protected void requireCompanyMember(UUID companyId, Features feature) throws RentlixApiException {
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        if (currentUser == null) {
+            throw new AccessDeniedException(feature);
+        }
+        if (!this.companyMemberRepository.existsByUserIdAndCompanyId(currentUser.getUserId(), companyId)) {
+            throw new AccessDeniedException(feature);
+        }
+    }
 }
