@@ -7,6 +7,7 @@ import com.mtsolutions.domain.controller.AssetController;
 import com.mtsolutions.domain.dto.request.CreateAssetRequestDto;
 import com.mtsolutions.domain.dto.response.AssetPageResponseDto;
 import com.mtsolutions.domain.dto.response.AssetResponseDto;
+import com.mtsolutions.domain.dto.response.PublicAssetPageResponseDto;
 import com.mtsolutions.domain.dto.response.PublicAssetResponseDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.model.AssetPage;
@@ -95,6 +96,24 @@ public class AssetResource {
 
         return Response.status(Response.Status.OK)
                 .entity(new AssetPageResponseDto(assetPage))
+                .build();
+    }
+
+    @GET
+    @Path("/public")
+    @PermitAll
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List public assets",
+            description = "Lists available assets from active companies, newest first. Plate, renavam, chassis, property registration and the full address are omitted. Page starts at 0. Size defaults to 20 and the maximum is 100."
+    )
+    public Response listPublic(
+            @QueryParam(RequestParam.PAGE) @DefaultValue("0") int page,
+            @QueryParam(RequestParam.SIZE) @DefaultValue("20") int size) {
+        AssetPage assetPage = this.assetController.listPublicAssets(page, size);
+
+        return Response.status(Response.Status.OK)
+                .entity(new PublicAssetPageResponseDto(assetPage))
                 .build();
     }
 

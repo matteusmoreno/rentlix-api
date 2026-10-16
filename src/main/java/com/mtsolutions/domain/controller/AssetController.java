@@ -34,6 +34,10 @@ public class AssetController {
         return this.assetService.listAssets(companyId, page, size);
     }
 
+    public AssetPage listPublicAssets(int page, int size) {
+        return this.assetService.listPublicAssets(page, size);
+    }
+
     public Asset uploadImage(UUID assetId, byte[] image) throws RentlixApiException {
         return this.assetService.uploadImage(assetId, image);
     }

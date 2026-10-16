@@ -116,6 +116,14 @@ public class AssetService {
     }
 
     @Transactional
+    public AssetPage listPublicAssets(int page, int size) {
+        PageWindow window = this.pageWindow(page, size);
+        List<Asset> assets = this.assetRepository.findPublicPage(window.page(), window.size());
+        long totalElements = this.assetRepository.countPublic();
+        return new AssetPage(assets, window.page(), window.size(), totalElements);
+    }
+
+    @Transactional
     public Asset uploadImage(UUID assetId, byte[] fileBytes) throws RentlixApiException {
         Asset asset = this.requireAsset(assetId, Features.UPLOAD_ASSET_IMAGE);
 
