@@ -8,6 +8,7 @@ import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
 import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
+import com.mtsolutions.domain.dto.response.CompanyUserResponseDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
 import io.quarkus.security.Authenticated;
@@ -115,6 +116,25 @@ public class CompanyResource {
 
         return Response.status(Response.Status.CREATED)
                 .entity(new CompanyMemberResponseDto(member))
+                .build();
+    }
+
+    @GET
+    @Path("/{companyId}/members")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List company members",
+            description = "Lists the members of a company. The authenticated user must belong to that company."
+    )
+    public Response listMembers(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
+        List<CompanyMember> members = this.companyController.listMembers(companyId);
+        List<CompanyUserResponseDto> response = members.stream()
+                .map(CompanyUserResponseDto::new)
+                .toList();
+
+        return Response.status(Response.Status.OK)
+                .entity(response)
                 .build();
     }
 

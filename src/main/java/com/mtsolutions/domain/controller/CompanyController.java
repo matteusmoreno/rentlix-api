@@ -31,4 +31,8 @@ public class CompanyController {
     public CompanyMember addMember(UUID companyId, AddCompanyMemberRequestDto request) throws RentlixApiException {
         return this.companyService.addMember(companyId, request);
     }
+
+    public List<CompanyMember> listMembers(UUID companyId) throws RentlixApiException {
+        return this.companyService.listMembers(companyId);
+    }
 }

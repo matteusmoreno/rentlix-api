@@ -140,4 +140,22 @@ public class CompanyService {
         log.info("User {} added to company {}", user.getUserId(), company.getCompanyId());
         return member;
     }
+
+    public List<CompanyMember> listMembers(UUID companyId) throws RentlixApiException {
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        if (currentUser == null) {
+            throw new AccessDeniedException(Features.LIST_COMPANY_MEMBERS);
+        }
+
+        if (this.companyRepository.findByIdOptional(companyId).isEmpty()) {
+            throw new CompanyNotFoundException(Features.LIST_COMPANY_MEMBERS);
+        }
+
+        if (!this.companyMemberRepository.existsByUserIdAndCompanyId(currentUser.getUserId(), companyId)) {
+            throw new AccessDeniedException(Features.LIST_COMPANY_MEMBERS);
+        }
+
+        log.info("Listing members of company {}", companyId);
+        return this.companyMemberRepository.findByCompanyId(companyId);
+    }
 }

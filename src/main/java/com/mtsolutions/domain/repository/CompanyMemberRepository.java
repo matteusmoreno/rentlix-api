@@ -20,6 +20,10 @@ public class CompanyMemberRepository implements PanacheRepositoryBase<CompanyMem
         return count("user.userId = ?1 and company.companyId = ?2", userId, companyId) > 0;
     }
 
+    public List<CompanyMember> findByCompanyId(UUID companyId) {
+        return find("select member from CompanyMember member join fetch member.user where member.company.companyId = ?1 order by member.user.name", companyId).list();
+    }
+
     public List<CompanyMember> findByUserId(UUID userId) {
         return find("select member from CompanyMember member join fetch member.company where member.user.userId = ?1 order by member.company.createdAt desc", userId).list();
     }
