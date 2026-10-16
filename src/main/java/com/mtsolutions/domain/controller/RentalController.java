@@ -1,0 +1,21 @@
+package com.mtsolutions.domain.controller;
+
+import com.mtsolutions.application.exception.RentlixApiException;
+import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
+import com.mtsolutions.domain.entity.Rental;
+import com.mtsolutions.domain.service.RentalService;
+import jakarta.enterprise.context.ApplicationScoped;
+
+@ApplicationScoped
+public class RentalController {
+
+    private final RentalService rentalService;
+
+    public RentalController(RentalService rentalService) {
+        this.rentalService = rentalService;
+    }
+
+    public Rental createRental(CreateRentalRequestDto request) throws RentlixApiException {
+        return this.rentalService.createRental(request);
+    }
+}

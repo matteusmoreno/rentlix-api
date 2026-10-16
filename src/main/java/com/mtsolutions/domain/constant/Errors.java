@@ -16,6 +16,8 @@ public enum Errors {
     GALLERY_IMAGE_NOT_FOUND("Gallery image not found"),
     ASSET_DETAILS_INVALID("Asset details do not match the type"),
     MEMBER_ROLE_INVALID("Member role is invalid"),
+    RENTAL_PERIOD_INVALID("Rental period is invalid"),
+    LESSEE_INVALID("Lessee is invalid"),
     USER_NOT_FOUND("User not found"),
     INVALID_CREDENTIALS("Invalid credentials"),
     ACCOUNT_NOT_ACTIVE("Account is not active"),
