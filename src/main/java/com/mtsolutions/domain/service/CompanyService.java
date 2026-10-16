@@ -22,6 +22,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @ApplicationScoped
 @Slf4j
@@ -83,5 +84,15 @@ public class CompanyService {
 
         log.info("Company created with ID: {}", company.getCompanyId());
         return company;
+    }
+
+    public List<CompanyMember> listCompanies() throws RentlixApiException {
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        if (currentUser == null) {
+            throw new AccessDeniedException(Features.LIST_COMPANIES);
+        }
+
+        log.info("Listing companies for user: {}", currentUser.getUserId());
+        return this.companyMemberRepository.findByUserId(currentUser.getUserId());
     }
 }

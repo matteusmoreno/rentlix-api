@@ -4,13 +4,16 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.CompanyResourceExamples;
 import com.mtsolutions.domain.controller.CompanyController;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
 import com.mtsolutions.domain.entity.Company;
+import com.mtsolutions.domain.entity.CompanyMember;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
@@ -21,6 +24,8 @@ import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
+import java.util.List;
 
 @RequestScoped
 @Path("/v1/companies")
@@ -60,4 +65,23 @@ public class CompanyResource {
                 .entity(new CompanyResponseDto(company))
                 .build();
     }
+
+    @GET
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "List companies",
+            description = "Lists the companies of the authenticated user and the role of that user in each company."
+    )
+    public Response list() throws RentlixApiException {
+        List<CompanyMember> members = this.companyController.listCompanies();
+        List<CompanyMemberResponseDto> companies = members.stream()
+                .map(CompanyMemberResponseDto::new)
+                .toList();
+
+        return Response.status(Response.Status.OK)
+                .entity(companies)
+                .build();
+    }
+
 }

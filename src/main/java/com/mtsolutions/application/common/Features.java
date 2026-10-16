@@ -4,6 +4,7 @@ public enum Features {
     GET_ADDRESS,
     CREATE_USER,
     CREATE_COMPANY,
+    LIST_COMPANIES,
     UPDATE_USER,
     GET_USER,
     SEND_EMAIL_VERIFICATION,
