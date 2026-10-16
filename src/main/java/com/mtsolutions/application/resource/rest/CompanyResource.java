@@ -1,8 +1,10 @@
 package com.mtsolutions.application.resource.rest;
 
+import com.mtsolutions.application.common.RequestParam;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.CompanyResourceExamples;
 import com.mtsolutions.domain.controller.CompanyController;
+import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
 import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
@@ -12,10 +14,12 @@ import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -26,6 +30,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
+import java.util.UUID;
 
 @RequestScoped
 @Path("/v1/companies")
@@ -81,6 +86,35 @@ public class CompanyResource {
 
         return Response.status(Response.Status.OK)
                 .entity(companies)
+                .build();
+    }
+
+    @POST
+    @Path("/{companyId}/members")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Add company member",
+            description = "Adds a lessor or lessee to the company. The authenticated user must be an admin of that company."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = AddCompanyMemberRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Add Company Member",
+                            value = CompanyResourceExamples.ADD_COMPANY_MEMBER_EXAMPLE
+                    )
+            )
+    )
+    public Response addMember(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+                              @Valid AddCompanyMemberRequestDto request) throws RentlixApiException {
+        CompanyMember member = this.companyController.addMember(companyId, request);
+
+        return Response.status(Response.Status.CREATED)
+                .entity(new CompanyMemberResponseDto(member))
                 .build();
     }
 

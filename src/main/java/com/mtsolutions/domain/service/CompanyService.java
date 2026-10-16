@@ -6,10 +6,14 @@ import com.mtsolutions.application.component.ContextUser;
 import com.mtsolutions.application.component.DateComponent;
 import com.mtsolutions.application.exception.AccessDeniedException;
 import com.mtsolutions.application.exception.CompanyAlreadyExistsException;
+import com.mtsolutions.application.exception.CompanyMemberAlreadyExistsException;
+import com.mtsolutions.application.exception.CompanyNotFoundException;
+import com.mtsolutions.application.exception.InvalidMemberRoleException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.UserRole;
+import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
@@ -23,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
@@ -94,5 +99,45 @@ public class CompanyService {
 
         log.info("Listing companies for user: {}", currentUser.getUserId());
         return this.companyMemberRepository.findByUserId(currentUser.getUserId());
+    }
+
+    @Transactional
+    public CompanyMember addMember(UUID companyId, AddCompanyMemberRequestDto request) throws RentlixApiException {
+        ContextUser currentUser = this.contextComponent.getCurrentUser();
+        if (currentUser == null) {
+            throw new AccessDeniedException(Features.ADD_COMPANY_MEMBER);
+        }
+
+        Company company = this.companyRepository.findByIdOptional(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(Features.ADD_COMPANY_MEMBER));
+
+        CompanyMember currentMember = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
+                .orElseThrow(() -> new AccessDeniedException(Features.ADD_COMPANY_MEMBER));
+
+        if (currentMember.getRole() != UserRole.ADMIN) {
+            throw new AccessDeniedException(Features.ADD_COMPANY_MEMBER);
+        }
+
+        if (request.role() == UserRole.ADMIN) {
+            throw new InvalidMemberRoleException(Features.ADD_COMPANY_MEMBER);
+        }
+
+        User user = this.userRepository.findByIdOptional(request.userId())
+                .orElseThrow(() -> new UserNotFoundException(Features.ADD_COMPANY_MEMBER));
+
+        if (this.companyMemberRepository.existsByUserIdAndCompanyId(user.getUserId(), companyId)) {
+            throw new CompanyMemberAlreadyExistsException(Features.ADD_COMPANY_MEMBER);
+        }
+
+        CompanyMember member = CompanyMember.builder()
+                .user(user)
+                .company(company)
+                .role(request.role())
+                .build();
+
+        this.companyMemberRepository.persist(member);
+
+        log.info("User {} added to company {}", user.getUserId(), company.getCompanyId());
+        return member;
     }
 }
