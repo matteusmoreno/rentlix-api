@@ -28,4 +28,12 @@ public class AssetController {
     public Asset deleteImage(UUID assetId) throws RentlixApiException {
         return this.assetService.deleteImage(assetId);
     }
+
+    public Asset uploadGalleryImage(UUID assetId, byte[] image) throws RentlixApiException {
+        return this.assetService.uploadGalleryImage(assetId, image);
+    }
+
+    public Asset deleteGalleryImage(UUID assetId, Integer position) throws RentlixApiException {
+        return this.assetService.deleteGalleryImage(assetId, position);
+    }
 }

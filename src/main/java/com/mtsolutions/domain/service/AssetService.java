@@ -5,6 +5,7 @@ import com.mtsolutions.application.component.DateComponent;
 import com.mtsolutions.application.exception.AssetAlreadyExistsException;
 import com.mtsolutions.application.exception.AssetNotFoundException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
+import com.mtsolutions.application.exception.GalleryImageNotFoundException;
 import com.mtsolutions.application.exception.InvalidAssetDetailsException;
 import com.mtsolutions.application.exception.PictureNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
@@ -119,6 +120,41 @@ public class AssetService {
         this.assetRepository.persist(asset);
 
         log.info("Image deleted for asset: {}", assetId);
+        return asset;
+    }
+
+    @Transactional
+    public Asset uploadGalleryImage(UUID assetId, byte[] fileBytes) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.UPLOAD_ASSET_GALLERY);
+
+        String publicId = UUID.randomUUID().toString();
+        String url = this.cloudinaryService.upload(fileBytes, publicId, CloudinaryFolder.ASSET_GALLERY, Features.UPLOAD_ASSET_GALLERY);
+        asset.getGallery().add(url);
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+
+        log.info("Gallery image uploaded for asset: {}", asset.getAssetId());
+        return asset;
+    }
+
+    @Transactional
+    public Asset deleteGalleryImage(UUID assetId, Integer position) throws RentlixApiException {
+        Asset asset = this.requireAsset(assetId, Features.DELETE_ASSET_GALLERY);
+
+        if (position == null || position < 0 || position >= asset.getGallery().size()) {
+            throw new GalleryImageNotFoundException(Features.DELETE_ASSET_GALLERY);
+        }
+
+        String url = asset.getGallery().get(position);
+        String publicId = this.cloudinaryService.extractPublicId(url);
+        if (publicId != null) {
+            this.cloudinaryService.delete(publicId, CloudinaryFolder.ASSET_GALLERY.getResourceType(), Features.DELETE_ASSET_GALLERY);
+        }
+        asset.getGallery().remove(position.intValue());
+        asset.setUpdatedAt(this.dateComponent.now());
+        this.assetRepository.persist(asset);
+
+        log.info("Gallery image deleted for asset {} at position {}", assetId, position);
         return asset;
     }
 

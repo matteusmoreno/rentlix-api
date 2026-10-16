@@ -112,6 +112,46 @@ public class AssetResource {
                 .build();
     }
 
+    @POST
+    @Path("/{assetId}/gallery")
+    @Authenticated
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Upload gallery image",
+            description = "Uploads one image to the end of the asset gallery. Position 0 is the first image. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response uploadGalleryImage(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId,
+            @RestForm("image")
+            @NotNull(message = "image is required")
+            @Schema(type = SchemaType.STRING, format = "binary", description = "Gallery image", required = true)
+            FileUpload image) throws RentlixApiException {
+        Asset asset = this.assetController.uploadGalleryImage(assetId, this.read(image));
+
+        return Response.status(Response.Status.CREATED)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
+    @DELETE
+    @Path("/{assetId}/gallery/{position}")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Delete gallery image",
+            description = "Removes one gallery image by its position. Position 0 is the first image. The following images move up. The authenticated user must be an admin of the company that owns the asset."
+    )
+    public Response deleteGalleryImage(
+            @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId,
+            @PathParam(RequestParam.POSITION) @NotNull(message = "position is required") Integer position) throws RentlixApiException {
+        Asset asset = this.assetController.deleteGalleryImage(assetId, position);
+
+        return Response.status(Response.Status.OK)
+                .entity(new AssetResponseDto(asset))
+                .build();
+    }
+
     private byte[] read(FileUpload file) {
         if (file == null || file.uploadedFile() == null) {
             return null;
