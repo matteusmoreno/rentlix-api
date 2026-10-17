@@ -51,6 +51,8 @@ quarkus:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
     start-tls: REQUIRED
+    login: REQUIRED
+    auth-methods: PLAIN LOGIN
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     mock: ${MAIL_MOCK:false}
