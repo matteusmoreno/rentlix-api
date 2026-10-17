@@ -4,15 +4,20 @@ import com.mtsolutions.application.common.Features;
 import com.mtsolutions.application.component.DateComponent;
 import com.mtsolutions.application.exception.AssetNotFoundException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
+import com.mtsolutions.application.exception.FinancialNotFoundException;
+import com.mtsolutions.application.exception.FinancialPeriodInvalidException;
 import com.mtsolutions.application.exception.FinancialReferenceInvalidException;
 import com.mtsolutions.application.exception.RentalNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.constant.CompanyStatus;
+import com.mtsolutions.domain.constant.FinancialDirection;
 import com.mtsolutions.domain.dto.request.CreateFinancialRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.Financial;
 import com.mtsolutions.domain.entity.Rental;
+import com.mtsolutions.domain.model.FinancialPage;
+import com.mtsolutions.domain.model.FinancialResult;
 import com.mtsolutions.domain.repository.AssetRepository;
 import com.mtsolutions.domain.repository.FinancialRepository;
 import com.mtsolutions.domain.repository.RentalRepository;
@@ -20,11 +25,20 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
 public class FinancialService {
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final FinancialRepository financialRepository;
     private final AssetRepository assetRepository;
@@ -81,6 +95,7 @@ public class FinancialService {
                 .company(company)
                 .asset(asset)
                 .rental(rental)
+                .direction(request.direction())
                 .type(request.type())
                 .amount(request.amount())
                 .description(request.description())
@@ -93,4 +108,79 @@ public class FinancialService {
         log.info("Financial created: {}", financial.getFinancialId());
         return financial;
     }
+
+    @Transactional
+    public Financial getFinancial(UUID financialId) throws RentlixApiException {
+        Financial financial = this.financialRepository.findByIdWithReferences(financialId)
+                .orElseThrow(() -> new FinancialNotFoundException(Features.GET_FINANCIAL));
+        this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.GET_FINANCIAL);
+        return financial;
+    }
+
+    @Transactional
+    public FinancialPage listFinancials(UUID companyId, UUID assetId, LocalDate from, LocalDate to, int page, int size) throws RentlixApiException {
+        this.companyService.requireAdminCompany(companyId, Features.LIST_FINANCIALS);
+
+        if (assetId != null) {
+            Asset asset = this.assetRepository.findByIdOptional(assetId)
+                    .orElseThrow(() -> new AssetNotFoundException(Features.LIST_FINANCIALS));
+            if (!asset.getCompany().getCompanyId().equals(companyId)) {
+                throw new AssetNotFoundException(Features.LIST_FINANCIALS);
+            }
+        }
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new FinancialPeriodInvalidException(Features.LIST_FINANCIALS);
+        }
+
+        PageWindow window = this.pageWindow(page, size);
+        List<Financial> financials = this.financialRepository.findPage(companyId, assetId, from, to, window.page(), window.size());
+        long totalElements = this.financialRepository.count(companyId, assetId, from, to);
+        return new FinancialPage(financials, window.page(), window.size(), totalElements);
+    }
+
+    @Transactional
+    public FinancialResult financialResult(UUID companyId, UUID assetId, LocalDate from, LocalDate to) throws RentlixApiException {
+        this.companyService.requireAdminCompany(companyId, Features.GET_FINANCIAL_RESULT);
+
+        if (assetId != null) {
+            Asset asset = this.assetRepository.findByIdOptional(assetId)
+                    .orElseThrow(() -> new AssetNotFoundException(Features.GET_FINANCIAL_RESULT));
+            if (!asset.getCompany().getCompanyId().equals(companyId)) {
+                throw new AssetNotFoundException(Features.GET_FINANCIAL_RESULT);
+            }
+        }
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new FinancialPeriodInvalidException(Features.GET_FINANCIAL_RESULT);
+        }
+
+        Map<FinancialDirection, BigDecimal> sums = this.financialRepository.sumByDirection(companyId, assetId, from, to);
+        BigDecimal income = this.amount(sums, FinancialDirection.INCOME);
+        BigDecimal expense = this.amount(sums, FinancialDirection.EXPENSE);
+        return new FinancialResult(income, expense, income.subtract(expense));
+    }
+
+    private BigDecimal amount(Map<FinancialDirection, BigDecimal> sums, FinancialDirection direction) {
+        BigDecimal amount = sums.get(direction);
+        if (amount == null) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.UNNECESSARY);
+        }
+        return amount.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private PageWindow pageWindow(int page, int size) {
+        int currentPage = page;
+        int pageSize = size;
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+        if (pageSize <= 0) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageSize > MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
+        }
+        return new PageWindow(currentPage, pageSize);
+    }
+
+    private record PageWindow(int page, int size) {}
 }

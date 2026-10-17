@@ -1,5 +1,6 @@
 package com.mtsolutions.domain.entity;
 
+import com.mtsolutions.domain.constant.FinancialDirection;
 import com.mtsolutions.domain.constant.FinancialType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,6 +48,9 @@ public class Financial {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rental_id")
     private Rental rental;
+
+    @Enumerated(EnumType.STRING)
+    private FinancialDirection direction;
 
     @Enumerated(EnumType.STRING)
     private FinancialType type;

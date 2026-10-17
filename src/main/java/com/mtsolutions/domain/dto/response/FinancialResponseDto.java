@@ -1,5 +1,6 @@
 package com.mtsolutions.domain.dto.response;
 
+import com.mtsolutions.domain.constant.FinancialDirection;
 import com.mtsolutions.domain.constant.FinancialType;
 import com.mtsolutions.domain.entity.Financial;
 
@@ -13,6 +14,7 @@ public record FinancialResponseDto(
         UUID companyId,
         UUID assetId,
         UUID rentalId,
+        FinancialDirection direction,
         FinancialType type,
         BigDecimal amount,
         String description,
@@ -26,6 +28,7 @@ public record FinancialResponseDto(
                 financial.getCompany().getCompanyId(),
                 financial.getAsset() == null ? null : financial.getAsset().getAssetId(),
                 financial.getRental() == null ? null : financial.getRental().getRentalId(),
+                financial.getDirection(),
                 financial.getType(),
                 financial.getAmount(),
                 financial.getDescription(),

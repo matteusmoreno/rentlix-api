@@ -21,6 +21,8 @@ public enum Errors {
     RENTAL_STATUS_CONFLICT("Rental status does not allow this action"),
     LESSEE_INVALID("Lessee is invalid"),
     FINANCIAL_REFERENCE_INVALID("Financial reference is invalid"),
+    FINANCIAL_PERIOD_INVALID("Financial period is invalid"),
+    FINANCIAL_NOT_FOUND("Financial not found"),
     USER_NOT_FOUND("User not found"),
     INVALID_CREDENTIALS("Invalid credentials"),
     ACCOUNT_NOT_ACTIVE("Account is not active"),

@@ -1,5 +1,6 @@
 package com.mtsolutions.domain.dto.request;
 
+import com.mtsolutions.domain.constant.FinancialDirection;
 import com.mtsolutions.domain.constant.FinancialType;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +17,8 @@ public record CreateFinancialRequestDto(
         UUID companyId,
         UUID assetId,
         UUID rentalId,
+        @NotNull(message = "Direction cannot be null")
+        FinancialDirection direction,
         @NotNull(message = "Type cannot be null")
         FinancialType type,
         @NotNull(message = "Amount cannot be null")
