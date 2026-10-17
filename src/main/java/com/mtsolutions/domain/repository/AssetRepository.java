@@ -55,4 +55,14 @@ public class AssetRepository implements PanacheRepositoryBase<Asset, UUID> {
     public long countPublic() {
         return count("status = ?1 and company.status = ?2", AssetStatus.AVAILABLE, CompanyStatus.ACTIVE);
     }
+
+    public List<Asset> findPublicPageByCompany(UUID companyId, int page, int size) {
+        return find("from Asset asset join fetch asset.company where asset.company.companyId = ?1 and asset.status = ?2 and asset.company.status = ?3 order by asset.createdAt desc", companyId, AssetStatus.AVAILABLE, CompanyStatus.ACTIVE)
+                .page(page, size)
+                .list();
+    }
+
+    public long countPublicByCompany(UUID companyId) {
+        return count("company.companyId = ?1 and status = ?2 and company.status = ?3", companyId, AssetStatus.AVAILABLE, CompanyStatus.ACTIVE);
+    }
 }

@@ -21,6 +21,9 @@ public class Company {
     @Column(name = "company_id")
     private UUID companyId;
     private String name;
+    private String slug;
+    @Column(name = "logo_url")
+    private String logoUrl;
     private String cnpj;
 
     @Enumerated(EnumType.STRING)

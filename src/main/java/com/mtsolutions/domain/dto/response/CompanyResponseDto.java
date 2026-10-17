@@ -10,6 +10,8 @@ import java.util.UUID;
 public record CompanyResponseDto(
         UUID companyId,
         String name,
+        String slug,
+        String logoUrl,
         String cnpj,
         CompanyPlan plan,
         CompanyStatus status,
@@ -20,6 +22,8 @@ public record CompanyResponseDto(
         this(
                 company.getCompanyId(),
                 company.getName(),
+                company.getSlug(),
+                company.getLogoUrl(),
                 company.getCnpj(),
                 company.getPlan(),
                 company.getStatus(),

@@ -12,29 +12,42 @@ import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyUserResponseDto;
 import com.mtsolutions.domain.dto.response.ContractTemplateResponseDto;
+import com.mtsolutions.domain.dto.response.PublicCompanyResponseDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
 import com.mtsolutions.domain.entity.ContractTemplate;
+import com.mtsolutions.domain.model.PublicCompany;
 import io.quarkus.security.Authenticated;
+import jakarta.annotation.security.PermitAll;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 
@@ -238,6 +251,75 @@ public class CompanyResource {
         return Response.status(Response.Status.OK)
                 .entity(new ContractTemplateResponseDto(template))
                 .build();
+    }
+
+    @POST
+    @Path("/{companyId}/logo")
+    @Authenticated
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Upload company logo",
+            description = "Uploads the logo of an active company and replaces the previous one. The authenticated user must be an admin of the company."
+    )
+    public Response uploadLogo(
+            @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @RestForm("logo")
+            @NotNull(message = "logo is required")
+            @Schema(type = SchemaType.STRING, format = "binary", description = "Company logo", required = true)
+            FileUpload logo) throws RentlixApiException {
+        Company company = this.companyController.uploadLogo(companyId, this.read(logo));
+
+        return Response.status(Response.Status.OK)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @DELETE
+    @Path("/{companyId}/logo")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Delete company logo",
+            description = "Removes the logo of an active company. The authenticated user must be an admin of the company."
+    )
+    public Response deleteLogo(
+            @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
+        Company company = this.companyController.deleteLogo(companyId);
+
+        return Response.status(Response.Status.OK)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @GET
+    @Path("/{slug}/public")
+    @PermitAll
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Get public company",
+            description = "Returns the name, the slug, the logo and the available assets of an active company. Page starts at 0. Size defaults to 20 and the maximum is 100."
+    )
+    public Response getPublic(
+            @PathParam(RequestParam.SLUG) @NotBlank(message = "slug is required") String slug,
+            @QueryParam(RequestParam.PAGE) @DefaultValue("0") int page,
+            @QueryParam(RequestParam.SIZE) @DefaultValue("20") int size) throws RentlixApiException {
+        PublicCompany publicCompany = this.companyController.getPublicCompany(slug, page, size);
+
+        return Response.status(Response.Status.OK)
+                .entity(new PublicCompanyResponseDto(publicCompany))
+                .build();
+    }
+
+    private byte[] read(FileUpload file) {
+        if (file == null || file.uploadedFile() == null) {
+            return null;
+        }
+        try {
+            return Files.readAllBytes(file.uploadedFile());
+        } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
     }
 
 }

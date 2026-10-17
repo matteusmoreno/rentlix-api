@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum CloudinaryFolder {
 
     USER_PICTURE("rentlix/users/pictures", "image"),
+    COMPANY_LOGO("rentlix/companies/logos", "image"),
     USER_DOCUMENT("rentlix/users/documents", "raw"),
     ASSET_IMAGE("rentlix/assets/images", "image"),
     ASSET_GALLERY("rentlix/assets/gallery", "image"),

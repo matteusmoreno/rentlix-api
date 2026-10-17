@@ -20,6 +20,7 @@ public class RequestParam {
     public static final String FROM = "from";
     public static final String TO = "to";
     public static final String CATEGORY = "category";
+    public static final String SLUG = "slug";
 
     private RequestParam(){}
 

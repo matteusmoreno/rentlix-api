@@ -11,6 +11,8 @@ import java.util.UUID;
 public record CompanyMemberResponseDto(
         UUID companyId,
         String name,
+        String slug,
+        String logoUrl,
         String cnpj,
         CompanyPlan plan,
         CompanyStatus status,
@@ -22,6 +24,8 @@ public record CompanyMemberResponseDto(
         this(
                 member.getCompany().getCompanyId(),
                 member.getCompany().getName(),
+                member.getCompany().getSlug(),
+                member.getCompany().getLogoUrl(),
                 member.getCompany().getCnpj(),
                 member.getCompany().getPlan(),
                 member.getCompany().getStatus(),

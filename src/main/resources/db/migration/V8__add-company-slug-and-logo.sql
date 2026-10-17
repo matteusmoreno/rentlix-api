@@ -1,0 +1,4 @@
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS slug VARCHAR(160);
+ALTER TABLE companies ADD COLUMN IF NOT EXISTS logo_url VARCHAR(255);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_companies_slug ON companies (slug);

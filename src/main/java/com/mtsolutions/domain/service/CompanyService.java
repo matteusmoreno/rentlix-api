@@ -10,15 +10,21 @@ import com.mtsolutions.application.exception.CompanyMemberAlreadyExistsException
 import com.mtsolutions.application.exception.CompanyNotFoundException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.InvalidMemberRoleException;
+import com.mtsolutions.application.exception.PictureNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
+import com.mtsolutions.domain.constant.CloudinaryFolder;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.UserRole;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
 import com.mtsolutions.domain.entity.User;
+import com.mtsolutions.domain.model.AssetPage;
+import com.mtsolutions.domain.model.PublicCompany;
+import com.mtsolutions.domain.repository.AssetRepository;
 import com.mtsolutions.domain.repository.CompanyMemberRepository;
 import com.mtsolutions.domain.repository.CompanyRepository;
 import com.mtsolutions.domain.repository.UserRepository;
@@ -26,28 +32,39 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
 public class CompanyService {
 
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final CompanyRepository companyRepository;
     private final CompanyMemberRepository companyMemberRepository;
     private final UserRepository userRepository;
+    private final AssetRepository assetRepository;
+    private final CloudinaryService cloudinaryService;
     private final ContextComponent contextComponent;
     private final DateComponent dateComponent;
 
     public CompanyService(CompanyRepository companyRepository,
                           CompanyMemberRepository companyMemberRepository,
                           UserRepository userRepository,
+                          AssetRepository assetRepository,
+                          CloudinaryService cloudinaryService,
                           ContextComponent contextComponent,
                           DateComponent dateComponent) {
         this.companyRepository = companyRepository;
         this.companyMemberRepository = companyMemberRepository;
         this.userRepository = userRepository;
+        this.assetRepository = assetRepository;
+        this.cloudinaryService = cloudinaryService;
         this.contextComponent = contextComponent;
         this.dateComponent = dateComponent;
     }
@@ -71,6 +88,7 @@ public class CompanyService {
         LocalDateTime now = this.dateComponent.now();
         Company company = Company.builder()
                 .name(request.name())
+                .slug(this.slug(request.name()))
                 .cnpj(request.cnpj())
                 .plan(request.plan())
                 .status(CompanyStatus.ACTIVE)
@@ -245,4 +263,99 @@ public class CompanyService {
             throw new AccessDeniedException(feature);
         }
     }
+
+    @Transactional
+    public Company uploadLogo(UUID companyId, byte[] fileBytes) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.UPLOAD_COMPANY_LOGO);
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyStatusConflictException(Features.UPLOAD_COMPANY_LOGO);
+        }
+
+        if (company.getLogoUrl() != null && !company.getLogoUrl().isBlank()) {
+            String oldPublicId = this.cloudinaryService.extractPublicId(company.getLogoUrl());
+            if (oldPublicId != null) {
+                this.cloudinaryService.delete(oldPublicId, CloudinaryFolder.COMPANY_LOGO.getResourceType(), Features.UPLOAD_COMPANY_LOGO);
+            }
+        }
+
+        String url = this.cloudinaryService.upload(fileBytes, company.getCompanyId().toString(), CloudinaryFolder.COMPANY_LOGO, Features.UPLOAD_COMPANY_LOGO);
+        company.setLogoUrl(url);
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+        log.info("Logo uploaded for company: {}", company.getCompanyId());
+        return company;
+    }
+
+    @Transactional
+    public Company deleteLogo(UUID companyId) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.DELETE_COMPANY_LOGO);
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyStatusConflictException(Features.DELETE_COMPANY_LOGO);
+        }
+        if (company.getLogoUrl() == null || company.getLogoUrl().isBlank()) {
+            throw new PictureNotFoundException(Features.DELETE_COMPANY_LOGO);
+        }
+
+        String publicId = this.cloudinaryService.extractPublicId(company.getLogoUrl());
+        if (publicId != null) {
+            this.cloudinaryService.delete(publicId, CloudinaryFolder.COMPANY_LOGO.getResourceType(), Features.DELETE_COMPANY_LOGO);
+        }
+        company.setLogoUrl(null);
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+        log.info("Logo deleted for company: {}", companyId);
+        return company;
+    }
+
+    @Transactional
+    public PublicCompany getPublicCompany(String slug, int page, int size) throws RentlixApiException {
+        Company company = this.companyRepository.findBySlug(slug)
+                .orElseThrow(() -> new CompanyNotFoundException(Features.GET_PUBLIC_COMPANY));
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyNotFoundException(Features.GET_PUBLIC_COMPANY);
+        }
+
+        PageWindow window = this.pageWindow(page, size);
+        List<Asset> assets = this.assetRepository.findPublicPageByCompany(company.getCompanyId(), window.page(), window.size());
+        long totalElements = this.assetRepository.countPublicByCompany(company.getCompanyId());
+        return new PublicCompany(company, new AssetPage(assets, window.page(), window.size(), totalElements));
+    }
+
+    private String slug(String name) {
+        String base = Normalizer.normalize(name, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-+|-+$)", "");
+        if (base.length() > 150) {
+            base = base.substring(0, 150).replaceAll("-+$", "");
+        }
+        if (base.isBlank()) {
+            base = "company";
+        }
+        String slug = base;
+        int suffix = 2;
+        while (this.companyRepository.existsBySlug(slug)) {
+            slug = base + "-" + suffix;
+            suffix++;
+        }
+        return slug;
+    }
+
+    private PageWindow pageWindow(int page, int size) {
+        int currentPage = page;
+        int pageSize = size;
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+        if (pageSize <= 0) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        if (pageSize > MAX_PAGE_SIZE) {
+            pageSize = MAX_PAGE_SIZE;
+        }
+        return new PageWindow(currentPage, pageSize);
+    }
+
+    private record PageWindow(int page, int size) {}
 }
