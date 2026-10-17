@@ -60,4 +60,5 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     private Boolean active;
+    private Boolean admin;
 }

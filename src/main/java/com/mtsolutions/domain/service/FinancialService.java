@@ -61,7 +61,7 @@ public class FinancialService {
 
     @Transactional
     public Financial createFinancial(CreateFinancialRequestDto request) throws RentlixApiException {
-        Company company = this.companyService.requireAdminCompany(request.companyId(), Features.CREATE_FINANCIAL);
+        Company company = this.companyService.requireLessorCompany(request.companyId(), Features.CREATE_FINANCIAL);
 
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.CREATE_FINANCIAL);
@@ -114,7 +114,7 @@ public class FinancialService {
     public Financial updateFinancial(UUID financialId, UpdateFinancialRequestDto request) throws RentlixApiException {
         Financial financial = this.financialRepository.findByIdWithReferences(financialId)
                 .orElseThrow(() -> new FinancialNotFoundException(Features.UPDATE_FINANCIAL));
-        Company company = this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.UPDATE_FINANCIAL);
+        Company company = this.companyService.requireLessorCompany(financial.getCompany().getCompanyId(), Features.UPDATE_FINANCIAL);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.UPDATE_FINANCIAL);
         }
@@ -145,7 +145,7 @@ public class FinancialService {
     public void deleteFinancial(UUID financialId) throws RentlixApiException {
         Financial financial = this.financialRepository.findByIdOptional(financialId)
                 .orElseThrow(() -> new FinancialNotFoundException(Features.DELETE_FINANCIAL));
-        Company company = this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.DELETE_FINANCIAL);
+        Company company = this.companyService.requireLessorCompany(financial.getCompany().getCompanyId(), Features.DELETE_FINANCIAL);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.DELETE_FINANCIAL);
         }
@@ -158,13 +158,13 @@ public class FinancialService {
     public Financial getFinancial(UUID financialId) throws RentlixApiException {
         Financial financial = this.financialRepository.findByIdWithReferences(financialId)
                 .orElseThrow(() -> new FinancialNotFoundException(Features.GET_FINANCIAL));
-        this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.GET_FINANCIAL);
+        this.companyService.requireLessorCompany(financial.getCompany().getCompanyId(), Features.GET_FINANCIAL);
         return financial;
     }
 
     @Transactional
     public FinancialPage listFinancials(UUID companyId, UUID assetId, LocalDate from, LocalDate to, int page, int size) throws RentlixApiException {
-        this.companyService.requireAdminCompany(companyId, Features.LIST_FINANCIALS);
+        this.companyService.requireLessorCompany(companyId, Features.LIST_FINANCIALS);
 
         if (assetId != null) {
             Asset asset = this.assetRepository.findByIdOptional(assetId)
@@ -185,7 +185,7 @@ public class FinancialService {
 
     @Transactional
     public FinancialResult financialResult(UUID companyId, UUID assetId, LocalDate from, LocalDate to) throws RentlixApiException {
-        this.companyService.requireAdminCompany(companyId, Features.GET_FINANCIAL_RESULT);
+        this.companyService.requireLessorCompany(companyId, Features.GET_FINANCIAL_RESULT);
 
         if (assetId != null) {
             Asset asset = this.assetRepository.findByIdOptional(assetId)

@@ -99,6 +99,7 @@ public class UserService {
                 .createdAt(this.dateComponent.now())
                 .updatedAt(this.dateComponent.now())
                 .active(false)
+                .admin(false)
                 .build();
 
         this.userRepository.persist(user);

@@ -79,7 +79,7 @@ public class RentalService {
         Asset asset = this.assetRepository.findByIdOptional(request.assetId())
                 .orElseThrow(() -> new AssetNotFoundException(Features.CREATE_RENTAL));
 
-        Company company = this.companyService.requireAdminCompany(asset.getCompany().getCompanyId(), Features.CREATE_RENTAL);
+        Company company = this.companyService.requireLessorCompany(asset.getCompany().getCompanyId(), Features.CREATE_RENTAL);
 
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.CREATE_RENTAL);
@@ -129,7 +129,7 @@ public class RentalService {
         Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(Features.FINISH_RENTAL));
         Asset asset = rental.getAsset();
-        this.companyService.requireAdminCompany(asset.getCompany().getCompanyId(), Features.FINISH_RENTAL);
+        this.companyService.requireLessorCompany(asset.getCompany().getCompanyId(), Features.FINISH_RENTAL);
 
         if (!RentalStatus.FINISHED.getValidPreviousStatuses().contains(rental.getStatus())) {
             throw new RentalStatusConflictException(Features.FINISH_RENTAL);
@@ -175,7 +175,7 @@ public class RentalService {
         CompanyMember member = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
                 .orElseThrow(() -> new AccessDeniedException(Features.GET_RENTAL));
 
-        if (member.getRole() == UserRole.ADMIN) {
+        if (member.getRole() == UserRole.LESSOR) {
             return rental;
         }
         if (member.getRole() == UserRole.LESSEE && rental.getLessee().getUserId().equals(currentUser.getUserId())) {
@@ -232,7 +232,7 @@ public class RentalService {
     private Rental requireActiveRental(UUID rentalId, Features feature) throws RentlixApiException {
         Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(feature));
-        this.companyService.requireAdminCompany(rental.getAsset().getCompany().getCompanyId(), feature);
+        this.companyService.requireLessorCompany(rental.getAsset().getCompany().getCompanyId(), feature);
         if (rental.getStatus() != RentalStatus.ACTIVE) {
             throw new RentalStatusConflictException(feature);
         }
@@ -249,7 +249,7 @@ public class RentalService {
         PageWindow window = this.pageWindow(page, size);
         List<Rental> rentals;
         long totalElements;
-        if (member.getRole() == UserRole.ADMIN) {
+        if (member.getRole() == UserRole.LESSOR) {
             rentals = this.rentalRepository.findPageByCompany(companyId, window.page(), window.size());
             totalElements = this.rentalRepository.countByCompany(companyId);
         } else if (member.getRole() == UserRole.LESSEE) {

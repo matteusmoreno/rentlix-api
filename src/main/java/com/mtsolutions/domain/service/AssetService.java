@@ -67,7 +67,7 @@ public class AssetService {
 
     @Transactional
     public Asset createAsset(CreateAssetRequestDto request) throws RentlixApiException {
-        Company company = this.companyService.requireAdminCompany(request.companyId(), Features.CREATE_ASSET);
+        Company company = this.companyService.requireLessorCompany(request.companyId(), Features.CREATE_ASSET);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.CREATE_ASSET);
         }
@@ -279,7 +279,7 @@ public class AssetService {
     protected Asset requireAsset(UUID assetId, Features feature) throws RentlixApiException {
         Asset asset = this.assetRepository.findByIdOptional(assetId)
                 .orElseThrow(() -> new AssetNotFoundException(feature));
-        this.companyService.requireAdminCompany(asset.getCompany().getCompanyId(), feature);
+        this.companyService.requireLessorCompany(asset.getCompany().getCompanyId(), feature);
         return asset;
     }
 

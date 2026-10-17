@@ -58,7 +58,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create rental",
-            description = "Creates an active rental for an available asset of an active company and marks the asset as rented. The price and the price period are copied from the asset. The contract URL stays empty until a contract PDF is uploaded. The lessee must be a lessee of that company. The authenticated user must be an admin of that company."
+            description = "Creates an active rental for an available asset of an active company and marks the asset as rented. The price and the price period are copied from the asset. The contract URL stays empty until a contract PDF is uploaded. The lessee must be a lessee of that company. The authenticated user must be a lessor of that company."
     )
     @RequestBody(
             required = true,
@@ -85,7 +85,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Finish rental",
-            description = "Finishes an active rental and marks the asset as available. The authenticated user must be an admin of the company that owns the asset."
+            description = "Finishes an active rental and marks the asset as available. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response finish(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
@@ -103,7 +103,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Renew rental",
-            description = "Extends the end date of an active rental. The price, the price period and the rented asset stay the same. The authenticated user must be an admin of the company that owns the asset."
+            description = "Extends the end date of an active rental. The price, the price period and the rented asset stay the same. The authenticated user must be a lessor of the company that owns the asset."
     )
     @RequestBody(
             required = true,
@@ -131,7 +131,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "List rentals",
-            description = "Lists the rentals of a company, newest first. An admin sees every rental of the company. A lessee sees only the rentals where they are the lessee. Page starts at 0. Size defaults to 20 and the maximum is 100."
+            description = "Lists the rentals of a company, newest first. A lessor sees every rental of the company. A lessee sees only the rentals where they are the lessee. Page starts at 0. Size defaults to 20 and the maximum is 100."
     )
     public Response list(
             @QueryParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
@@ -150,7 +150,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Get rental",
-            description = "Returns a rental. An admin of the company that owns the asset can see it. A lessee can see it only when they are the lessee."
+            description = "Returns a rental. A lessor of the company that owns the asset can see it. A lessee can see it only when they are the lessee."
     )
     public Response getRental(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
@@ -167,7 +167,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Generate rental contract",
-            description = "Fills the company template of the asset category and returns a PDF. The signed contract stays unchanged until it is uploaded. The authenticated user must be an admin of the company that owns the asset. The rental must be active."
+            description = "Fills the company template of the asset category and returns a PDF. The signed contract stays unchanged until it is uploaded. The authenticated user must be a lessor of the company that owns the asset. The rental must be active."
     )
     public Response generateContract(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
@@ -186,7 +186,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Upload rental contract",
-            description = "Uploads the contract PDF of an active rental and replaces the previous one. The authenticated user must be an admin of the company that owns the asset."
+            description = "Uploads the contract PDF of an active rental and replaces the previous one. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response uploadContract(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId,
@@ -207,7 +207,7 @@ public class RentalResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Delete rental contract",
-            description = "Removes the contract PDF of an active rental. The authenticated user must be an admin of the company that owns the asset."
+            description = "Removes the contract PDF of an active rental. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response deleteContract(
             @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {

@@ -47,7 +47,7 @@ public class ContractTemplateService {
 
     @Transactional
     public ContractTemplate save(UUID companyId, AssetCategory category, SaveContractTemplateRequestDto request) throws RentlixApiException {
-        Company company = this.companyService.requireAdminCompany(companyId, Features.SAVE_CONTRACT_TEMPLATE);
+        Company company = this.companyService.requireLessorCompany(companyId, Features.SAVE_CONTRACT_TEMPLATE);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.SAVE_CONTRACT_TEMPLATE);
         }
@@ -68,7 +68,7 @@ public class ContractTemplateService {
 
     @Transactional
     public ContractTemplate get(UUID companyId, AssetCategory category) throws RentlixApiException {
-        this.companyService.requireAdminCompany(companyId, Features.GET_CONTRACT_TEMPLATE);
+        this.companyService.requireLessorCompany(companyId, Features.GET_CONTRACT_TEMPLATE);
         return this.contractTemplateRepository.findByCompanyAndCategory(companyId, category)
                 .orElseThrow(() -> new ContractTemplateNotFoundException(Features.GET_CONTRACT_TEMPLATE));
     }
@@ -77,7 +77,7 @@ public class ContractTemplateService {
     public byte[] generate(UUID rentalId) throws RentlixApiException {
         Rental rental = this.rentalRepository.findByIdWithAssetAndLessee(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(Features.GENERATE_RENTAL_CONTRACT));
-        this.companyService.requireAdminCompany(rental.getAsset().getCompany().getCompanyId(), Features.GENERATE_RENTAL_CONTRACT);
+        this.companyService.requireLessorCompany(rental.getAsset().getCompany().getCompanyId(), Features.GENERATE_RENTAL_CONTRACT);
         if (rental.getStatus() != RentalStatus.ACTIVE) {
             throw new RentalStatusConflictException(Features.GENERATE_RENTAL_CONTRACT);
         }

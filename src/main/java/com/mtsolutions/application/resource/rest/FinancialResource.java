@@ -56,7 +56,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create financial entry",
-            description = "Records an income or an expense for an active company. Direction says whether money came in or went out. Type says what the entry is, such as rent, deposit or maintenance. The asset and the rental are optional. A rental entry uses the rental asset. The authenticated user must be an admin of the company."
+            description = "Records an income or an expense for an active company. Direction says whether money came in or went out. Type says what the entry is, such as rent, deposit or maintenance. The asset and the rental are optional. A rental entry uses the rental asset. The authenticated user must be a lessor of the company."
     )
     @RequestBody(
             required = true,
@@ -82,7 +82,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "List financial entries",
-            description = "Lists the financial entries of a company, latest date first. The asset and the period are optional. The same day is included on both ends. Page starts at 0. Size defaults to 20 and the maximum is 100. The authenticated user must be an admin of the company."
+            description = "Lists the financial entries of a company, latest date first. The asset and the period are optional. The same day is included on both ends. Page starts at 0. Size defaults to 20 and the maximum is 100. The authenticated user must be a lessor of the company."
     )
     public Response list(
             @QueryParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
@@ -104,7 +104,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Get financial result",
-            description = "Returns the income, the expense and the result of a company. With an asset, the result is that asset. A positive result is profit. A negative result is loss. The period is optional and includes both days. The authenticated user must be an admin of the company."
+            description = "Returns the income, the expense and the result of a company. With an asset, the result is that asset. A positive result is profit. A negative result is loss. The period is optional and includes both days. The authenticated user must be a lessor of the company."
     )
     public Response result(
             @QueryParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
@@ -124,7 +124,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Get financial entry",
-            description = "Returns a financial entry. The authenticated user must be an admin of the company."
+            description = "Returns a financial entry. The authenticated user must be a lessor of the company."
     )
     public Response getFinancial(
             @PathParam(RequestParam.FINANCIAL_ID) @NotNull(message = "financialId is required") UUID financialId) throws RentlixApiException {
@@ -142,7 +142,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Update financial entry",
-            description = "Updates a financial entry. A null field is left unchanged and a blank description is rejected. Company, asset and rental stay unchanged. The authenticated user must be an admin of the active company."
+            description = "Updates a financial entry. A null field is left unchanged and a blank description is rejected. Company, asset and rental stay unchanged. The authenticated user must be a lessor of the active company."
     )
     @RequestBody(
             required = true,
@@ -171,7 +171,7 @@ public class FinancialResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Delete financial entry",
-            description = "Removes a financial entry. The result no longer includes it. The authenticated user must be an admin of the active company."
+            description = "Removes a financial entry. The result no longer includes it. The authenticated user must be a lessor of the active company."
     )
     public Response delete(
             @PathParam(RequestParam.FINANCIAL_ID) @NotNull(message = "financialId is required") UUID financialId) throws RentlixApiException {

@@ -70,7 +70,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create Company",
-            description = "Creates a company for the authenticated user and adds that user as admin. Status starts as ACTIVE."
+            description = "Creates a company for the authenticated user and adds that user as lessor. Status starts as ACTIVE."
     )
     @RequestBody(
             required = true,
@@ -98,7 +98,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Update company",
-            description = "Updates the company information. A null field is left unchanged and a blank value is rejected. Status and logo stay unchanged. The authenticated user must be an admin of the active company."
+            description = "Updates the company information. A null field is left unchanged and a blank value is rejected. Status and logo stay unchanged. The authenticated user must be a lessor of the active company."
     )
     @RequestBody(
             required = true,
@@ -146,7 +146,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Add company member",
-            description = "Adds a lessor or lessee to the company. The authenticated user must be an admin of that company."
+            description = "Adds a lessee to the company. The authenticated user must be a lessor of that company."
     )
     @RequestBody(
             required = true,
@@ -193,7 +193,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Suspend company",
-            description = "Suspends an active company. The authenticated user must be an admin of that company."
+            description = "Suspends an active company. The authenticated user must be a lessor of that company."
     )
     public Response suspend(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
         Company company = this.companyController.suspendCompany(companyId);
@@ -209,7 +209,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Cancel company",
-            description = "Cancels an active or suspended company. A canceled company cannot change status again. The authenticated user must be an admin of that company."
+            description = "Cancels an active or suspended company. A canceled company cannot change status again. The authenticated user must be a lessor of that company."
     )
     public Response cancel(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
         Company company = this.companyController.cancelCompany(companyId);
@@ -225,7 +225,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Reactivate company",
-            description = "Reactivates a suspended company. A canceled company cannot be reactivated. The authenticated user must be an admin of that company."
+            description = "Reactivates a suspended company. A canceled company cannot be reactivated. The authenticated user must be a lessor of that company."
     )
     public Response reactivate(@PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {
         Company company = this.companyController.reactivateCompany(companyId);
@@ -242,7 +242,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Save contract template",
-            description = "Saves the contract template of an active company for vehicles or properties. The content is the editor HTML. Placeholders: {{company.name}}, {{company.cnpj}}, {{lessee.name}}, {{lessee.cpf}}, {{lessee.rg}}, {{lessee.email}}, {{lessee.phone}}, {{lessee.birthDate}}, {{lessee.occupation}}, {{lessee.maritalStatus}}, {{lessee.zipCode}}, {{lessee.street}}, {{lessee.number}}, {{lessee.complement}}, {{lessee.neighborhood}}, {{lessee.city}}, {{lessee.state}}, {{asset.name}}, {{asset.description}}, {{asset.type}}, {{asset.price}}, {{asset.pricePeriod}}, {{vehicle.brand}}, {{vehicle.model}}, {{vehicle.manufactureYear}}, {{vehicle.modelYear}}, {{vehicle.color}}, {{vehicle.plate}}, {{vehicle.renavam}}, {{vehicle.chassis}}, {{vehicle.engineCc}}, {{vehicle.mileage}}, {{property.zipCode}}, {{property.street}}, {{property.number}}, {{property.complement}}, {{property.neighborhood}}, {{property.city}}, {{property.state}}, {{property.totalArea}}, {{property.bedrooms}}, {{property.suites}}, {{property.bathrooms}}, {{property.parkingSpaces}}, {{property.furnished}}, {{property.petFriendly}}, {{property.hasElevator}}, {{property.hasPool}}, {{property.hasGym}}, {{property.hasBarbecue}}, {{property.condoFee}}, {{property.iptu}}, {{property.registrationNumber}}, {{rental.startDate}}, {{rental.endDate}}, {{rental.price}}, {{rental.pricePeriod}}. The authenticated user must be an admin of the company."
+            description = "Saves the contract template of an active company for vehicles or properties. The content is the editor HTML. Placeholders: {{company.name}}, {{company.cnpj}}, {{lessee.name}}, {{lessee.cpf}}, {{lessee.rg}}, {{lessee.email}}, {{lessee.phone}}, {{lessee.birthDate}}, {{lessee.occupation}}, {{lessee.maritalStatus}}, {{lessee.zipCode}}, {{lessee.street}}, {{lessee.number}}, {{lessee.complement}}, {{lessee.neighborhood}}, {{lessee.city}}, {{lessee.state}}, {{asset.name}}, {{asset.description}}, {{asset.type}}, {{asset.price}}, {{asset.pricePeriod}}, {{vehicle.brand}}, {{vehicle.model}}, {{vehicle.manufactureYear}}, {{vehicle.modelYear}}, {{vehicle.color}}, {{vehicle.plate}}, {{vehicle.renavam}}, {{vehicle.chassis}}, {{vehicle.engineCc}}, {{vehicle.mileage}}, {{property.zipCode}}, {{property.street}}, {{property.number}}, {{property.complement}}, {{property.neighborhood}}, {{property.city}}, {{property.state}}, {{property.totalArea}}, {{property.bedrooms}}, {{property.suites}}, {{property.bathrooms}}, {{property.parkingSpaces}}, {{property.furnished}}, {{property.petFriendly}}, {{property.hasElevator}}, {{property.hasPool}}, {{property.hasGym}}, {{property.hasBarbecue}}, {{property.condoFee}}, {{property.iptu}}, {{property.registrationNumber}}, {{rental.startDate}}, {{rental.endDate}}, {{rental.price}}, {{rental.pricePeriod}}. The authenticated user must be a lessor of the company."
     )
     @RequestBody(
             required = true,
@@ -272,7 +272,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Get contract template",
-            description = "Returns the contract template of a company for vehicles or properties. The authenticated user must be an admin of the company."
+            description = "Returns the contract template of a company for vehicles or properties. The authenticated user must be a lessor of the company."
     )
     public Response getContractTemplate(
             @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
@@ -291,7 +291,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Upload company logo",
-            description = "Uploads the logo of an active company and replaces the previous one. The authenticated user must be an admin of the company."
+            description = "Uploads the logo of an active company and replaces the previous one. The authenticated user must be a lessor of the company."
     )
     public Response uploadLogo(
             @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
@@ -312,7 +312,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Delete company logo",
-            description = "Removes the logo of an active company. The authenticated user must be an admin of the company."
+            description = "Removes the logo of an active company. The authenticated user must be a lessor of the company."
     )
     public Response deleteLogo(
             @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId) throws RentlixApiException {

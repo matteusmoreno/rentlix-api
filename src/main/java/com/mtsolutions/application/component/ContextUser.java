@@ -18,4 +18,5 @@ public class ContextUser implements Principal {
     private final String name;
     private final String email;
     private final Boolean emailVerified;
+    private final Boolean admin;
 }

@@ -4,7 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum UserRole {
-    ADMIN("Admin"),
     LESSOR("Lessor"), //LOCADOR
     LESSEE("Lessee"); //LOCATÁRIO
 

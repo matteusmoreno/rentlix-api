@@ -25,7 +25,8 @@ public record UserResponseDto(
         UserDocument documents,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Boolean active
+        Boolean active,
+        Boolean admin
 ) {
     public UserResponseDto(User user) {
         this(
@@ -44,7 +45,8 @@ public record UserResponseDto(
                 user.getDocuments(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getActive()
+                user.getActive(),
+                user.getAdmin()
         );
     }
 }

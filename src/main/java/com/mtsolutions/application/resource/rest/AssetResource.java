@@ -62,7 +62,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create Asset",
-            description = "Creates an available asset for an active company. The authenticated user must be an admin of that company. Motorcycles and cars require vehicle details. Houses and apartments require property details. The main image and the gallery are uploaded after the asset is created."
+            description = "Creates an available asset for an active company. The authenticated user must be a lessor of that company. Motorcycles and cars require vehicle details. Houses and apartments require property details. The main image and the gallery are uploaded after the asset is created."
     )
     @RequestBody(
             required = true,
@@ -143,7 +143,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Update asset",
-            description = "Updates the asset information. A null field is left unchanged and a blank value is rejected. Type, company, images and status stay unchanged. The authenticated user must be an admin of the company that owns the asset."
+            description = "Updates the asset information. A null field is left unchanged and a blank value is rejected. Type, company, images and status stay unchanged. The authenticated user must be a lessor of the company that owns the asset."
     )
     @RequestBody(
             required = true,
@@ -190,7 +190,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Upload asset image",
-            description = "Uploads the main image of an asset to Cloudinary and replaces the previous one. The authenticated user must be an admin of the company that owns the asset."
+            description = "Uploads the main image of an asset to Cloudinary and replaces the previous one. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response uploadImage(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId,
@@ -211,7 +211,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Delete asset image",
-            description = "Removes the main image of an asset from Cloudinary. The authenticated user must be an admin of the company that owns the asset."
+            description = "Removes the main image of an asset from Cloudinary. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response deleteImage(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
@@ -229,7 +229,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Upload gallery image",
-            description = "Uploads one image to the end of the asset gallery. Position 0 is the first image. The authenticated user must be an admin of the company that owns the asset."
+            description = "Uploads one image to the end of the asset gallery. Position 0 is the first image. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response uploadGalleryImage(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId,
@@ -250,7 +250,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Delete gallery image",
-            description = "Removes one gallery image by its position. Position 0 is the first image. The following images move up. The authenticated user must be an admin of the company that owns the asset."
+            description = "Removes one gallery image by its position. Position 0 is the first image. The following images move up. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response deleteGalleryImage(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId,
@@ -268,7 +268,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Rent asset",
-            description = "Marks an available asset as rented. The authenticated user must be an admin of the company that owns the asset."
+            description = "Marks an available asset as rented. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response rent(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
@@ -285,7 +285,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Start asset maintenance",
-            description = "Marks an available asset as under maintenance. The authenticated user must be an admin of the company that owns the asset."
+            description = "Marks an available asset as under maintenance. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response startMaintenance(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
@@ -302,7 +302,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Inactivate asset",
-            description = "Marks an available asset as inactive. The authenticated user must be an admin of the company that owns the asset."
+            description = "Marks an available asset as inactive. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response inactivate(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {
@@ -319,7 +319,7 @@ public class AssetResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Activate asset",
-            description = "Marks a maintenance or inactive asset as available. A rented asset with an active rental must be finished first. The authenticated user must be an admin of the company that owns the asset."
+            description = "Marks a maintenance or inactive asset as available. A rented asset with an active rental must be finished first. The authenticated user must be a lessor of the company that owns the asset."
     )
     public Response activate(
             @PathParam(RequestParam.ASSET_ID) @NotNull(message = "assetId is required") UUID assetId) throws RentlixApiException {

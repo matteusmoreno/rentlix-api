@@ -24,6 +24,7 @@ public class ContextUserAugmentor implements SecurityIdentityAugmentor {
                 .name(jwt.getClaim("name"))
                 .email(jwt.getName())
                 .emailVerified(this.emailVerified(jwt))
+                .admin(this.admin(jwt))
                 .build();
 
         return Uni.createFrom().item(QuarkusSecurityIdentity.builder(identity)
@@ -33,6 +34,14 @@ public class ContextUserAugmentor implements SecurityIdentityAugmentor {
 
     private Boolean emailVerified(JsonWebToken jwt) {
         Object claim = jwt.getClaim("emailVerified");
+        if (claim instanceof Boolean value) {
+            return value;
+        }
+        return Boolean.parseBoolean(String.valueOf(claim));
+    }
+
+    private Boolean admin(JsonWebToken jwt) {
+        Object claim = jwt.getClaim("admin");
         if (claim instanceof Boolean value) {
             return value;
         }

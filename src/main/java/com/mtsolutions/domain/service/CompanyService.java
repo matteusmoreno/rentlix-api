@@ -102,7 +102,7 @@ public class CompanyService {
         CompanyMember member = CompanyMember.builder()
                 .user(user)
                 .company(company)
-                .role(UserRole.ADMIN)
+                .role(UserRole.LESSOR)
                 .build();
 
         this.companyMemberRepository.persist(member);
@@ -113,7 +113,7 @@ public class CompanyService {
 
     @Transactional
     public Company updateCompany(UUID companyId, UpdateCompanyRequestDto request) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.UPDATE_COMPANY);
+        Company company = this.requireLessorCompany(companyId, Features.UPDATE_COMPANY);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.UPDATE_COMPANY);
         }
@@ -165,11 +165,11 @@ public class CompanyService {
         CompanyMember currentMember = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
                 .orElseThrow(() -> new AccessDeniedException(Features.ADD_COMPANY_MEMBER));
 
-        if (currentMember.getRole() != UserRole.ADMIN) {
+        if (currentMember.getRole() != UserRole.LESSOR) {
             throw new AccessDeniedException(Features.ADD_COMPANY_MEMBER);
         }
 
-        if (request.role() == UserRole.ADMIN) {
+        if (request.role() != UserRole.LESSEE) {
             throw new InvalidMemberRoleException(Features.ADD_COMPANY_MEMBER);
         }
 
@@ -212,7 +212,7 @@ public class CompanyService {
 
     @Transactional
     public Company suspendCompany(UUID companyId) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.SUSPEND_COMPANY);
+        Company company = this.requireLessorCompany(companyId, Features.SUSPEND_COMPANY);
         this.validatePreviousStatus(company, CompanyStatus.SUSPENDED, Features.SUSPEND_COMPANY);
 
         company.setStatus(CompanyStatus.SUSPENDED);
@@ -225,7 +225,7 @@ public class CompanyService {
 
     @Transactional
     public Company cancelCompany(UUID companyId) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.CANCEL_COMPANY);
+        Company company = this.requireLessorCompany(companyId, Features.CANCEL_COMPANY);
         this.validatePreviousStatus(company, CompanyStatus.CANCELED, Features.CANCEL_COMPANY);
 
         company.setStatus(CompanyStatus.CANCELED);
@@ -238,7 +238,7 @@ public class CompanyService {
 
     @Transactional
     public Company reactivateCompany(UUID companyId) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.REACTIVATE_COMPANY);
+        Company company = this.requireLessorCompany(companyId, Features.REACTIVATE_COMPANY);
         this.validatePreviousStatus(company, CompanyStatus.ACTIVE, Features.REACTIVATE_COMPANY);
 
         company.setStatus(CompanyStatus.ACTIVE);
@@ -260,7 +260,7 @@ public class CompanyService {
         }
     }
 
-    protected Company requireAdminCompany(UUID companyId, Features feature) throws RentlixApiException {
+    protected Company requireLessorCompany(UUID companyId, Features feature) throws RentlixApiException {
         ContextUser currentUser = this.contextComponent.getCurrentUser();
         if (currentUser == null) {
             throw new AccessDeniedException(feature);
@@ -272,7 +272,7 @@ public class CompanyService {
         CompanyMember currentMember = this.companyMemberRepository.findByUserIdAndCompanyId(currentUser.getUserId(), companyId)
                 .orElseThrow(() -> new AccessDeniedException(feature));
 
-        if (currentMember.getRole() != UserRole.ADMIN) {
+        if (currentMember.getRole() != UserRole.LESSOR) {
             throw new AccessDeniedException(feature);
         }
 
@@ -298,7 +298,7 @@ public class CompanyService {
 
     @Transactional
     public Company uploadLogo(UUID companyId, byte[] fileBytes) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.UPLOAD_COMPANY_LOGO);
+        Company company = this.requireLessorCompany(companyId, Features.UPLOAD_COMPANY_LOGO);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.UPLOAD_COMPANY_LOGO);
         }
@@ -320,7 +320,7 @@ public class CompanyService {
 
     @Transactional
     public Company deleteLogo(UUID companyId) throws RentlixApiException {
-        Company company = this.requireAdminCompany(companyId, Features.DELETE_COMPANY_LOGO);
+        Company company = this.requireLessorCompany(companyId, Features.DELETE_COMPANY_LOGO);
         if (company.getStatus() != CompanyStatus.ACTIVE) {
             throw new CompanyStatusConflictException(Features.DELETE_COMPANY_LOGO);
         }

@@ -38,6 +38,7 @@ public class JwtService {
                 .claim(RequestParam.USER_ID, user.getUserId().toString())
                 .claim("name", user.getName())
                 .claim("emailVerified", user.getEmailVerified())
+                .claim("admin", user.getAdmin())
                 .expiresIn(Duration.ofHours(this.tokenExpirationInHours))
                 .sign();
 
