@@ -5,6 +5,7 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.FinancialResourceExamples;
 import com.mtsolutions.domain.controller.FinancialController;
 import com.mtsolutions.domain.dto.request.CreateFinancialRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateFinancialRequestDto;
 import com.mtsolutions.domain.dto.response.FinancialPageResponseDto;
 import com.mtsolutions.domain.dto.response.FinancialResponseDto;
 import com.mtsolutions.domain.dto.response.FinancialResultResponseDto;
@@ -17,9 +18,11 @@ import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
@@ -130,5 +133,50 @@ public class FinancialResource {
         return Response.status(Response.Status.OK)
                 .entity(new FinancialResponseDto(financial))
                 .build();
+    }
+
+    @PUT
+    @Path("/{financialId}/update")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Update financial entry",
+            description = "Updates a financial entry. A null field is left unchanged and a blank description is rejected. Company, asset and rental stay unchanged. The authenticated user must be an admin of the active company."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = UpdateFinancialRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Update Financial",
+                            value = FinancialResourceExamples.UPDATE_FINANCIAL_EXAMPLE
+                    )
+            )
+    )
+    public Response update(
+            @PathParam(RequestParam.FINANCIAL_ID) @NotNull(message = "financialId is required") UUID financialId,
+            @Valid UpdateFinancialRequestDto request) throws RentlixApiException {
+        Financial financial = this.financialController.updateFinancial(financialId, request);
+
+        return Response.status(Response.Status.OK)
+                .entity(new FinancialResponseDto(financial))
+                .build();
+    }
+
+    @DELETE
+    @Path("/{financialId}")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Delete financial entry",
+            description = "Removes a financial entry. The result no longer includes it. The authenticated user must be an admin of the active company."
+    )
+    public Response delete(
+            @PathParam(RequestParam.FINANCIAL_ID) @NotNull(message = "financialId is required") UUID financialId) throws RentlixApiException {
+        this.financialController.deleteFinancial(financialId);
+
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

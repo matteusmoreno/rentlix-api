@@ -2,6 +2,7 @@ package com.mtsolutions.domain.controller;
 
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.dto.request.CreateFinancialRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateFinancialRequestDto;
 import com.mtsolutions.domain.entity.Financial;
 import com.mtsolutions.domain.model.FinancialPage;
 import com.mtsolutions.domain.model.FinancialResult;
@@ -26,6 +27,14 @@ public class FinancialController {
 
     public Financial getFinancial(UUID financialId) throws RentlixApiException {
         return this.financialService.getFinancial(financialId);
+    }
+
+    public Financial updateFinancial(UUID financialId, UpdateFinancialRequestDto request) throws RentlixApiException {
+        return this.financialService.updateFinancial(financialId, request);
+    }
+
+    public void deleteFinancial(UUID financialId) throws RentlixApiException {
+        this.financialService.deleteFinancial(financialId);
     }
 
     public FinancialPage listFinancials(UUID companyId, UUID assetId, LocalDate from, LocalDate to, int page, int size) throws RentlixApiException {

@@ -15,5 +15,12 @@ public class FinancialResourceExamples {
             }
             """;
 
+    public static final String UPDATE_FINANCIAL_EXAMPLE = """
+            {
+                "amount": 1600.00,
+                "description": "October rent adjusted"
+            }
+            """;
+
     private FinancialResourceExamples() {}
 }

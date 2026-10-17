@@ -12,6 +12,7 @@ import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.FinancialDirection;
 import com.mtsolutions.domain.dto.request.CreateFinancialRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateFinancialRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.Financial;
@@ -107,6 +108,50 @@ public class FinancialService {
         this.financialRepository.persist(financial);
         log.info("Financial created: {}", financial.getFinancialId());
         return financial;
+    }
+
+    @Transactional
+    public Financial updateFinancial(UUID financialId, UpdateFinancialRequestDto request) throws RentlixApiException {
+        Financial financial = this.financialRepository.findByIdWithReferences(financialId)
+                .orElseThrow(() -> new FinancialNotFoundException(Features.UPDATE_FINANCIAL));
+        Company company = this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.UPDATE_FINANCIAL);
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyStatusConflictException(Features.UPDATE_FINANCIAL);
+        }
+
+        if (request.direction() != null) {
+            financial.setDirection(request.direction());
+        }
+        if (request.type() != null) {
+            financial.setType(request.type());
+        }
+        if (request.amount() != null) {
+            financial.setAmount(request.amount());
+        }
+        if (request.description() != null) {
+            financial.setDescription(request.description());
+        }
+        if (request.occurredOn() != null) {
+            financial.setOccurredOn(request.occurredOn());
+        }
+
+        financial.setUpdatedAt(this.dateComponent.now());
+        this.financialRepository.persist(financial);
+        log.info("Financial updated: {}", financial.getFinancialId());
+        return financial;
+    }
+
+    @Transactional
+    public void deleteFinancial(UUID financialId) throws RentlixApiException {
+        Financial financial = this.financialRepository.findByIdOptional(financialId)
+                .orElseThrow(() -> new FinancialNotFoundException(Features.DELETE_FINANCIAL));
+        Company company = this.companyService.requireAdminCompany(financial.getCompany().getCompanyId(), Features.DELETE_FINANCIAL);
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyStatusConflictException(Features.DELETE_FINANCIAL);
+        }
+
+        this.financialRepository.delete(financial);
+        log.info("Financial deleted: {}", financialId);
     }
 
     @Transactional
