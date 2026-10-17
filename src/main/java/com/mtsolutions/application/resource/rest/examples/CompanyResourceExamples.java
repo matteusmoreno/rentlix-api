@@ -10,6 +10,13 @@ public class CompanyResourceExamples {
             }
             """;
 
+    public static final String UPDATE_COMPANY_EXAMPLE = """
+            {
+                "name": "Locadora Paulista",
+                "slug": "locadora-paulista"
+            }
+            """;
+
     public static final String ADD_COMPANY_MEMBER_EXAMPLE = """
             {
                 "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

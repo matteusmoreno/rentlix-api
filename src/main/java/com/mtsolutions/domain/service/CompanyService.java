@@ -18,6 +18,7 @@ import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.UserRole;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateCompanyRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
@@ -107,6 +108,37 @@ public class CompanyService {
         this.companyMemberRepository.persist(member);
 
         log.info("Company created with ID: {}", company.getCompanyId());
+        return company;
+    }
+
+    @Transactional
+    public Company updateCompany(UUID companyId, UpdateCompanyRequestDto request) throws RentlixApiException {
+        Company company = this.requireAdminCompany(companyId, Features.UPDATE_COMPANY);
+        if (company.getStatus() != CompanyStatus.ACTIVE) {
+            throw new CompanyStatusConflictException(Features.UPDATE_COMPANY);
+        }
+        if (request.cnpj() != null && this.companyRepository.existsOtherByCnpj(companyId, request.cnpj())) {
+            throw new CompanyAlreadyExistsException(Features.UPDATE_COMPANY);
+        }
+        if (request.slug() != null && this.companyRepository.existsOtherBySlug(companyId, request.slug())) {
+            throw new CompanyAlreadyExistsException(Features.UPDATE_COMPANY);
+        }
+
+        if (request.name() != null) {
+            company.setName(request.name());
+        }
+        if (request.slug() != null) {
+            company.setSlug(request.slug());
+        }
+        if (request.cnpj() != null) {
+            company.setCnpj(request.cnpj());
+        }
+        if (request.plan() != null) {
+            company.setPlan(request.plan());
+        }
+        company.setUpdatedAt(this.dateComponent.now());
+        this.companyRepository.persist(company);
+        log.info("Company updated: {}", company.getCompanyId());
         return company;
     }
 

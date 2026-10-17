@@ -8,6 +8,7 @@ import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
 import com.mtsolutions.domain.dto.request.SaveContractTemplateRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateCompanyRequestDto;
 import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyUserResponseDto;
@@ -86,6 +87,36 @@ public class CompanyResource {
         Company company = this.companyController.createCompany(request);
 
         return Response.status(Response.Status.CREATED)
+                .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @PUT
+    @Path("/{companyId}/update")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Update company",
+            description = "Updates the company information. A null field is left unchanged and a blank value is rejected. Status and logo stay unchanged. The authenticated user must be an admin of the active company."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = UpdateCompanyRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Update Company",
+                            value = CompanyResourceExamples.UPDATE_COMPANY_EXAMPLE
+                    )
+            )
+    )
+    public Response update(
+            @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @Valid UpdateCompanyRequestDto request) throws RentlixApiException {
+        Company company = this.companyController.updateCompany(companyId, request);
+
+        return Response.status(Response.Status.OK)
                 .entity(new CompanyResponseDto(company))
                 .build();
     }

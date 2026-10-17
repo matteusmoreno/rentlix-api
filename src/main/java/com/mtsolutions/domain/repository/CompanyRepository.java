@@ -18,6 +18,14 @@ public class CompanyRepository implements PanacheRepositoryBase<Company, UUID> {
         return count("slug", slug) > 0;
     }
 
+    public boolean existsOtherByCnpj(UUID companyId, String cnpj) {
+        return count("companyId <> ?1 and cnpj = ?2", companyId, cnpj) > 0;
+    }
+
+    public boolean existsOtherBySlug(UUID companyId, String slug) {
+        return count("companyId <> ?1 and slug = ?2", companyId, slug) > 0;
+    }
+
     public Optional<Company> findBySlug(String slug) {
         return find("slug", slug).firstResultOptional();
     }

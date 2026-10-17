@@ -5,6 +5,7 @@ import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
 import com.mtsolutions.domain.dto.request.SaveContractTemplateRequestDto;
+import com.mtsolutions.domain.dto.request.UpdateCompanyRequestDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
 import com.mtsolutions.domain.entity.ContractTemplate;
@@ -29,6 +30,10 @@ public class CompanyController {
 
     public Company createCompany(CreateCompanyRequestDto request) throws RentlixApiException {
         return this.companyService.createCompany(request);
+    }
+
+    public Company updateCompany(UUID companyId, UpdateCompanyRequestDto request) throws RentlixApiException {
+        return this.companyService.updateCompany(companyId, request);
     }
 
     public List<CompanyMember> listCompanies() throws RentlixApiException {
