@@ -20,6 +20,10 @@ public class UserRepository implements PanacheRepositoryBase<User, UUID> {
         return find("emailVerificationToken", token).firstResultOptional();
     }
 
+    public Optional<User> findByEmailAndPasswordResetToken(String email, String token) {
+        return find("email = ?1 and passwordResetToken = ?2", email, token).firstResultOptional();
+    }
+
     public List<User> findPage(int page, int size) {
         return findAll(Sort.descending("createdAt")).page(page, size).list();
     }

@@ -30,6 +30,8 @@ public enum Errors {
     ACCOUNT_NOT_ACTIVE("Account is not active"),
     EMAIL_VERIFICATION_TOKEN_INVALID("Email verification token is invalid"),
     EMAIL_VERIFICATION_TOKEN_EXPIRED("Email verification token is expired"),
+    PASSWORD_RESET_CODE_INVALID("Password reset code is invalid"),
+    PASSWORD_RESET_CODE_EXPIRED("Password reset code is expired"),
     ZIP_CODE_NOT_FOUND("No address found for the given zip code"),
     VIA_CEP_UNAVAILABLE("ViaCEP is unavailable"),
     PICTURE_NOT_FOUND("Picture not found"),

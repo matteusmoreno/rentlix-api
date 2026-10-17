@@ -14,13 +14,16 @@ public class EmailService {
     private final Mailer mailer;
     private final Template welcomeTemplate;
     private final Template verifyEmailTemplate;
+    private final Template passwordResetTemplate;
 
     public EmailService(Mailer mailer,
                         @Location("emails/welcome.html") Template welcomeTemplate,
-                        @Location("emails/verification.html") Template verifyEmailTemplate) {
+                        @Location("emails/verification.html") Template verifyEmailTemplate,
+                        @Location("emails/password-reset.html") Template passwordResetTemplate) {
         this.mailer = mailer;
         this.welcomeTemplate = welcomeTemplate;
         this.verifyEmailTemplate = verifyEmailTemplate;
+        this.passwordResetTemplate = passwordResetTemplate;
     }
 
     public void sendWelcomeEmail(String name, String email) {
@@ -51,6 +54,22 @@ public class EmailService {
             log.info("Verification email sent to: {}", email);
         } catch (Exception exception) {
             log.error("Failed to send verification email to {}: {}", email, exception.getMessage());
+        }
+    }
+
+    public void sendPasswordResetEmail(String name, String email, String token, long expiresMinutes) {
+        log.info("Sending password reset email to: {}", email);
+        try {
+            String htmlBody = this.passwordResetTemplate
+                    .data("name", name)
+                    .data("token", token)
+                    .data("expiresMinutes", expiresMinutes)
+                    .render();
+
+            this.mailer.send(Mail.withHtml(email, "Redefina sua senha — Rentlix", htmlBody));
+            log.info("Password reset email sent to: {}", email);
+        } catch (Exception exception) {
+            log.error("Failed to send password reset email to {}: {}", email, exception.getMessage());
         }
     }
 }

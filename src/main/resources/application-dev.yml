@@ -82,3 +82,4 @@ app:
     token-expiration-hours: ${AUTH_TOKEN_EXPIRATION_HOURS:8}
   email:
     verification-token-expires-minutes: ${EMAIL_VERIFICATION_TOKEN_EXPIRES_MINUTES:20}
+    password-reset-token-expires-minutes: ${PASSWORD_RESET_TOKEN_EXPIRES_MINUTES:20}
