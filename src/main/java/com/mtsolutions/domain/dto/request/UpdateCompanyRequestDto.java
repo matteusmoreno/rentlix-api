@@ -1,6 +1,5 @@
 package com.mtsolutions.domain.dto.request;
 
-import com.mtsolutions.domain.constant.CompanyPlan;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -12,6 +11,5 @@ public record UpdateCompanyRequestDto(
         @Size(max = 160, message = "Slug must have at most 160 characters")
         String slug,
         @Pattern(regexp = "\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}", message = "CNPJ must follow the format XX.XXX.XXX/XXXX-XX")
-        String cnpj,
-        CompanyPlan plan
+        String cnpj
 ) {}

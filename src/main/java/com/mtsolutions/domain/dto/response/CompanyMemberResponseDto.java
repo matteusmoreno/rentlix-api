@@ -1,6 +1,5 @@
 package com.mtsolutions.domain.dto.response;
 
-import com.mtsolutions.domain.constant.CompanyPlan;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.constant.UserRole;
 import com.mtsolutions.domain.entity.CompanyMember;
@@ -14,7 +13,7 @@ public record CompanyMemberResponseDto(
         String slug,
         String logoUrl,
         String cnpj,
-        CompanyPlan plan,
+        PlanResponseDto plan,
         CompanyStatus status,
         UserRole role,
         LocalDateTime createdAt,
@@ -27,7 +26,7 @@ public record CompanyMemberResponseDto(
                 member.getCompany().getSlug(),
                 member.getCompany().getLogoUrl(),
                 member.getCompany().getCnpj(),
-                member.getCompany().getPlan(),
+                new PlanResponseDto(member.getCompany().getPlan()),
                 member.getCompany().getStatus(),
                 member.getRole(),
                 member.getCompany().getCreatedAt(),

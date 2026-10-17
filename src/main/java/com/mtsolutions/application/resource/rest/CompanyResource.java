@@ -70,7 +70,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Create Company",
-            description = "Creates a company for the authenticated user and adds that user as lessor. Status starts as ACTIVE."
+            description = "Creates a company for the authenticated user and adds that user as lessor. Status starts as ACTIVE and the plan starts as FREE."
     )
     @RequestBody(
             required = true,
@@ -98,7 +98,7 @@ public class CompanyResource {
     @RunOnVirtualThread
     @Operation(
             summary = "Update company",
-            description = "Updates the company information. A null field is left unchanged and a blank value is rejected. Status and logo stay unchanged. The authenticated user must be a lessor of the active company."
+            description = "Updates the company information. A null field is left unchanged and a blank value is rejected. Status, logo and plan stay unchanged. The authenticated user must be a lessor of the active company."
     )
     @RequestBody(
             required = true,

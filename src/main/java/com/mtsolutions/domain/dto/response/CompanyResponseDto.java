@@ -1,6 +1,5 @@
 package com.mtsolutions.domain.dto.response;
 
-import com.mtsolutions.domain.constant.CompanyPlan;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import com.mtsolutions.domain.entity.Company;
 
@@ -13,7 +12,7 @@ public record CompanyResponseDto(
         String slug,
         String logoUrl,
         String cnpj,
-        CompanyPlan plan,
+        PlanResponseDto plan,
         CompanyStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -25,7 +24,7 @@ public record CompanyResponseDto(
                 company.getSlug(),
                 company.getLogoUrl(),
                 company.getCnpj(),
-                company.getPlan(),
+                new PlanResponseDto(company.getPlan()),
                 company.getStatus(),
                 company.getCreatedAt(),
                 company.getUpdatedAt()

@@ -11,6 +11,7 @@ import com.mtsolutions.application.exception.CompanyNotFoundException;
 import com.mtsolutions.application.exception.CompanyStatusConflictException;
 import com.mtsolutions.application.exception.InvalidMemberRoleException;
 import com.mtsolutions.application.exception.PictureNotFoundException;
+import com.mtsolutions.application.exception.PlanNotFoundException;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.exception.UserNotFoundException;
 import com.mtsolutions.domain.constant.CloudinaryFolder;
@@ -22,12 +23,14 @@ import com.mtsolutions.domain.dto.request.UpdateCompanyRequestDto;
 import com.mtsolutions.domain.entity.Asset;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
+import com.mtsolutions.domain.entity.Plan;
 import com.mtsolutions.domain.entity.User;
 import com.mtsolutions.domain.model.AssetPage;
 import com.mtsolutions.domain.model.PublicCompany;
 import com.mtsolutions.domain.repository.AssetRepository;
 import com.mtsolutions.domain.repository.CompanyMemberRepository;
 import com.mtsolutions.domain.repository.CompanyRepository;
+import com.mtsolutions.domain.repository.PlanRepository;
 import com.mtsolutions.domain.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -47,6 +50,7 @@ public class CompanyService {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final CompanyRepository companyRepository;
+    private final PlanRepository planRepository;
     private final CompanyMemberRepository companyMemberRepository;
     private final UserRepository userRepository;
     private final AssetRepository assetRepository;
@@ -55,6 +59,7 @@ public class CompanyService {
     private final DateComponent dateComponent;
 
     public CompanyService(CompanyRepository companyRepository,
+                          PlanRepository planRepository,
                           CompanyMemberRepository companyMemberRepository,
                           UserRepository userRepository,
                           AssetRepository assetRepository,
@@ -62,6 +67,7 @@ public class CompanyService {
                           ContextComponent contextComponent,
                           DateComponent dateComponent) {
         this.companyRepository = companyRepository;
+        this.planRepository = planRepository;
         this.companyMemberRepository = companyMemberRepository;
         this.userRepository = userRepository;
         this.assetRepository = assetRepository;
@@ -86,12 +92,15 @@ public class CompanyService {
         User user = this.userRepository.findByIdOptional(currentUser.getUserId())
                 .orElseThrow(() -> new UserNotFoundException(Features.CREATE_COMPANY));
 
+        Plan plan = this.planRepository.findFixed()
+                .orElseThrow(() -> new PlanNotFoundException(Features.CREATE_COMPANY));
+
         LocalDateTime now = this.dateComponent.now();
         Company company = Company.builder()
                 .name(request.name())
                 .slug(this.slug(request.name()))
                 .cnpj(request.cnpj())
-                .plan(request.plan())
+                .plan(plan)
                 .status(CompanyStatus.ACTIVE)
                 .createdAt(now)
                 .updatedAt(now)
@@ -132,9 +141,6 @@ public class CompanyService {
         }
         if (request.cnpj() != null) {
             company.setCnpj(request.cnpj());
-        }
-        if (request.plan() != null) {
-            company.setPlan(request.plan());
         }
         company.setUpdatedAt(this.dateComponent.now());
         this.companyRepository.persist(company);

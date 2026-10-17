@@ -1,6 +1,5 @@
 package com.mtsolutions.domain.entity;
 
-import com.mtsolutions.domain.constant.CompanyPlan;
 import com.mtsolutions.domain.constant.CompanyStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,8 +25,9 @@ public class Company {
     private String logoUrl;
     private String cnpj;
 
-    @Enumerated(EnumType.STRING)
-    private CompanyPlan plan;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
 
     @Enumerated(EnumType.STRING)
     private CompanyStatus status;

@@ -4,6 +4,7 @@ public class RequestParam {
 
     public static final String USER_ID = "userId";
     public static final String COMPANY_ID = "companyId";
+    public static final String PLAN_ID = "planId";
     public static final String ASSET_ID = "assetId";
     public static final String RENTAL_ID = "rentalId";
     public static final String FINANCIAL_ID = "financialId";
