@@ -1,11 +1,15 @@
 package com.mtsolutions.domain.controller;
 
 import com.mtsolutions.application.exception.RentlixApiException;
+import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.dto.request.SaveContractTemplateRequestDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
+import com.mtsolutions.domain.entity.ContractTemplate;
 import com.mtsolutions.domain.service.CompanyService;
+import com.mtsolutions.domain.service.ContractTemplateService;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
@@ -15,9 +19,11 @@ import java.util.UUID;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final ContractTemplateService contractTemplateService;
 
-    public CompanyController(CompanyService companyService) {
+    public CompanyController(CompanyService companyService, ContractTemplateService contractTemplateService) {
         this.companyService = companyService;
+        this.contractTemplateService = contractTemplateService;
     }
 
     public Company createCompany(CreateCompanyRequestDto request) throws RentlixApiException {
@@ -46,5 +52,13 @@ public class CompanyController {
 
     public Company reactivateCompany(UUID companyId) throws RentlixApiException {
         return this.companyService.reactivateCompany(companyId);
+    }
+
+    public ContractTemplate saveContractTemplate(UUID companyId, AssetCategory category, SaveContractTemplateRequestDto request) throws RentlixApiException {
+        return this.contractTemplateService.save(companyId, category, request);
+    }
+
+    public ContractTemplate getContractTemplate(UUID companyId, AssetCategory category) throws RentlixApiException {
+        return this.contractTemplateService.get(companyId, category);
     }
 }

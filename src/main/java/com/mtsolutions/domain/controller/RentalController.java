@@ -5,6 +5,7 @@ import com.mtsolutions.domain.dto.request.CreateRentalRequestDto;
 import com.mtsolutions.domain.dto.request.RenewRentalRequestDto;
 import com.mtsolutions.domain.entity.Rental;
 import com.mtsolutions.domain.model.RentalPage;
+import com.mtsolutions.domain.service.ContractTemplateService;
 import com.mtsolutions.domain.service.RentalService;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -14,9 +15,11 @@ import java.util.UUID;
 public class RentalController {
 
     private final RentalService rentalService;
+    private final ContractTemplateService contractTemplateService;
 
-    public RentalController(RentalService rentalService) {
+    public RentalController(RentalService rentalService, ContractTemplateService contractTemplateService) {
         this.rentalService = rentalService;
+        this.contractTemplateService = contractTemplateService;
     }
 
     public Rental createRental(CreateRentalRequestDto request) throws RentlixApiException {
@@ -45,5 +48,9 @@ public class RentalController {
 
     public Rental deleteContract(UUID rentalId) throws RentlixApiException {
         return this.rentalService.deleteContract(rentalId);
+    }
+
+    public byte[] generateContract(UUID rentalId) throws RentlixApiException {
+        return this.contractTemplateService.generate(rentalId);
     }
 }

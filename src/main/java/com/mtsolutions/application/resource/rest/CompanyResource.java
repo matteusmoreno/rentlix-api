@@ -4,13 +4,17 @@ import com.mtsolutions.application.common.RequestParam;
 import com.mtsolutions.application.exception.RentlixApiException;
 import com.mtsolutions.application.resource.rest.examples.CompanyResourceExamples;
 import com.mtsolutions.domain.controller.CompanyController;
+import com.mtsolutions.domain.constant.AssetCategory;
 import com.mtsolutions.domain.dto.request.AddCompanyMemberRequestDto;
 import com.mtsolutions.domain.dto.request.CreateCompanyRequestDto;
+import com.mtsolutions.domain.dto.request.SaveContractTemplateRequestDto;
 import com.mtsolutions.domain.dto.response.CompanyMemberResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyResponseDto;
 import com.mtsolutions.domain.dto.response.CompanyUserResponseDto;
+import com.mtsolutions.domain.dto.response.ContractTemplateResponseDto;
 import com.mtsolutions.domain.entity.Company;
 import com.mtsolutions.domain.entity.CompanyMember;
+import com.mtsolutions.domain.entity.ContractTemplate;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.RequestScoped;
@@ -19,6 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.MediaType;
@@ -183,6 +188,55 @@ public class CompanyResource {
 
         return Response.status(Response.Status.OK)
                 .entity(new CompanyResponseDto(company))
+                .build();
+    }
+
+    @PUT
+    @Path("/{companyId}/contract-templates/{category}")
+    @Authenticated
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Save contract template",
+            description = "Saves the contract template of an active company for vehicles or properties. The content is the editor HTML. Placeholders: {{company.name}}, {{company.cnpj}}, {{lessee.name}}, {{lessee.cpf}}, {{lessee.rg}}, {{lessee.email}}, {{lessee.phone}}, {{lessee.birthDate}}, {{lessee.occupation}}, {{lessee.maritalStatus}}, {{lessee.zipCode}}, {{lessee.street}}, {{lessee.number}}, {{lessee.complement}}, {{lessee.neighborhood}}, {{lessee.city}}, {{lessee.state}}, {{asset.name}}, {{asset.description}}, {{asset.type}}, {{asset.price}}, {{asset.pricePeriod}}, {{vehicle.brand}}, {{vehicle.model}}, {{vehicle.manufactureYear}}, {{vehicle.modelYear}}, {{vehicle.color}}, {{vehicle.plate}}, {{vehicle.renavam}}, {{vehicle.chassis}}, {{vehicle.engineCc}}, {{vehicle.mileage}}, {{property.zipCode}}, {{property.street}}, {{property.number}}, {{property.complement}}, {{property.neighborhood}}, {{property.city}}, {{property.state}}, {{property.totalArea}}, {{property.bedrooms}}, {{property.suites}}, {{property.bathrooms}}, {{property.parkingSpaces}}, {{property.furnished}}, {{property.petFriendly}}, {{property.hasElevator}}, {{property.hasPool}}, {{property.hasGym}}, {{property.hasBarbecue}}, {{property.condoFee}}, {{property.iptu}}, {{property.registrationNumber}}, {{rental.startDate}}, {{rental.endDate}}, {{rental.price}}, {{rental.pricePeriod}}. The authenticated user must be an admin of the company."
+    )
+    @RequestBody(
+            required = true,
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = SaveContractTemplateRequestDto.class),
+                    examples = @ExampleObject(
+                            name = "Save Contract Template",
+                            value = CompanyResourceExamples.SAVE_CONTRACT_TEMPLATE_EXAMPLE
+                    )
+            )
+    )
+    public Response saveContractTemplate(
+            @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @PathParam(RequestParam.CATEGORY) @NotNull(message = "category is required") AssetCategory category,
+            @Valid SaveContractTemplateRequestDto request) throws RentlixApiException {
+        ContractTemplate template = this.companyController.saveContractTemplate(companyId, category, request);
+
+        return Response.status(Response.Status.OK)
+                .entity(new ContractTemplateResponseDto(template))
+                .build();
+    }
+
+    @GET
+    @Path("/{companyId}/contract-templates/{category}")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Get contract template",
+            description = "Returns the contract template of a company for vehicles or properties. The authenticated user must be an admin of the company."
+    )
+    public Response getContractTemplate(
+            @PathParam(RequestParam.COMPANY_ID) @NotNull(message = "companyId is required") UUID companyId,
+            @PathParam(RequestParam.CATEGORY) @NotNull(message = "category is required") AssetCategory category) throws RentlixApiException {
+        ContractTemplate template = this.companyController.getContractTemplate(companyId, category);
+
+        return Response.status(Response.Status.OK)
+                .entity(new ContractTemplateResponseDto(template))
                 .build();
     }
 

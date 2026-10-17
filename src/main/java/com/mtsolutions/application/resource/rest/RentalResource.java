@@ -162,6 +162,24 @@ public class RentalResource {
     }
 
     @POST
+    @Path("/{rentalId}/contract/generate")
+    @Authenticated
+    @RunOnVirtualThread
+    @Operation(
+            summary = "Generate rental contract",
+            description = "Fills the company template of the asset category and returns a PDF. The signed contract stays unchanged until it is uploaded. The authenticated user must be an admin of the company that owns the asset. The rental must be active."
+    )
+    public Response generateContract(
+            @PathParam(RequestParam.RENTAL_ID) @NotNull(message = "rentalId is required") UUID rentalId) throws RentlixApiException {
+        byte[] pdf = this.rentalController.generateContract(rentalId);
+
+        return Response.ok(pdf)
+                .type("application/pdf")
+                .header("Content-Disposition", "attachment; filename=\"contract.pdf\"")
+                .build();
+    }
+
+    @POST
     @Path("/{rentalId}/contract")
     @Authenticated
     @Consumes(MediaType.MULTIPART_FORM_DATA)

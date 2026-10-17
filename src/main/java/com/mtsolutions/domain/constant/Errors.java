@@ -19,6 +19,8 @@ public enum Errors {
     RENTAL_PERIOD_INVALID("Rental period is invalid"),
     RENTAL_NOT_FOUND("Rental not found"),
     RENTAL_STATUS_CONFLICT("Rental status does not allow this action"),
+    CONTRACT_TEMPLATE_NOT_FOUND("Contract template not found"),
+    CONTRACT_TEMPLATE_INVALID("Contract template is invalid"),
     LESSEE_INVALID("Lessee is invalid"),
     FINANCIAL_REFERENCE_INVALID("Financial reference is invalid"),
     FINANCIAL_PERIOD_INVALID("Financial period is invalid"),

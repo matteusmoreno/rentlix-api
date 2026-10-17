@@ -17,5 +17,11 @@ public class CompanyResourceExamples {
             }
             """;
 
+    public static final String SAVE_CONTRACT_TEMPLATE_EXAMPLE = """
+            {
+                "content": "<p>Locador: {{company.name}}, CNPJ {{company.cnpj}}.</p><p>Locatário: {{lessee.name}}, CPF {{lessee.cpf}}.</p><p>Bem: {{asset.name}}. De {{rental.startDate}} a {{rental.endDate}}, no valor de {{rental.price}} por {{rental.pricePeriod}}.</p>"
+            }
+            """;
+
     private CompanyResourceExamples() {}
 }
